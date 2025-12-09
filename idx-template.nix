@@ -28,7 +28,6 @@
     rm -rf "$tmpdir"
     rm -rf \
       AGENTS.md \
-      android \
       ios \
       gradle \
       gradlew \
