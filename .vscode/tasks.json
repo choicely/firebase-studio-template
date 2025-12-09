@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Choicely App Widget in Simple Browser",
+      "command": "${input:openSimpleBrowser}",
+      "type": "shell",
+      "problemMatcher": [],
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "openSimpleBrowser",
+      "type": "command",
+      "command": "simpleBrowser.show",
+      "args": [
+        "https://cdn.choicely.com/vx/widget.html?wak=Y2hvaWNlbHktZXUvYXBwcy9mY3Zud1hpUGVDemFFcGNVSzBreA"
+      ]
+    }
+  ]
+}
