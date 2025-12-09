@@ -5,6 +5,7 @@
       pkgs.gzip
       pkgs.gnutar
       pkgs.nodejs_20
+      pkgs.rsync
   ];
   bootstrap = ''
     set -eo pipefail
@@ -18,6 +19,13 @@
     # Git repository
     rm -rf "$out/.git" "$out/idx-template".{nix,json}
     cd "$out"
+    tmpdir="$(mktemp -d)"
+    curl -L "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/split.tar.gz" \
+      | tar -xzf - -C "$tmpdir"
+    rsync -a --ignore-existing \
+      "$tmpdir"/choicely-sdk-demo-react-native-split/ \
+      "$out"/
+    rm -rf "$tmpdir"
     printf '%s="%s"\n' "CHOICELY_APP_NAME" "$WS_NAME" >> default.env
     printf '%s=%s\n' "CHOICELY_APP_KEY" "${app_key}" >> default.env
     printf '%s=%s\n' "CHOICELY_API_KEY" "${api_key}" >> .env
