@@ -10,7 +10,7 @@ safe_app_name=${lower_name//[^a-z0-9_-]/-}
 apk_path=./out/apk/"$safe_app_name".apk
 
 if [ -f "$apk_path" ]; then
-  echo "APK already exists at: $apk_path — skipping patch_apk.sh"
+  echo "APK already exists at: $apk_path"
 else
   ./scripts/android/patch_apk.sh \
     "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/debug/choicely-rn.apk" \
