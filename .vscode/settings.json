@@ -61,7 +61,10 @@
     "package-lock.json": true
   },
   "files.watcherExclude": {
-    "package-lock.json": true,
+    "**/.DS_Store": true,
+    "**/package-lock.json": true,
+    "**/*.lock": true,
+    "**/.idea/**": true,
     "**/.git/**": true,
     "**/.hg/**": true,
     "**/.svn/**": true,
@@ -177,5 +180,6 @@
   "outline.collapseItems": "alwaysCollapse",
   "timeline.pageSize": 0,
   "code-runner.runInTerminal": true,
-  "react-native-tools.showUserTips": false
+  "react-native-tools.showUserTips": false,
+  "react-native.packager.status-indicator": "Short"
 }

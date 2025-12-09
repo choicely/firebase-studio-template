@@ -30,3 +30,4 @@ res/
 
 # Exclude Lockfiles to reduce noise
 *.lock
+package-lock.json
