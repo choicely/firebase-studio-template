@@ -26,6 +26,16 @@
       "$tmpdir"/choicely-sdk-demo-react-native-split/ \
       "$out"/
     rm -rf "$tmpdir"
+    rm -rf \
+      AGENTS.md \
+      android \
+      ios \
+      gradle \
+      gradlew \
+      gradlew.bat \
+      settings.gradle \
+      gradle.properties \
+      build.gradle || true
     printf '%s="%s"\n' "CHOICELY_APP_NAME" "$WS_NAME" >> default.env
     printf '%s=%s\n' "CHOICELY_APP_KEY" "${app_key}" >> default.env
     printf '%s=%s\n' "CHOICELY_API_KEY" "${api_key}" >> .env
