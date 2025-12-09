@@ -19,10 +19,12 @@ cleanup() {
     wait "$SERVER_PID" 2>/dev/null || true
   fi
 }
-
-npx -y http-server "$SERVE_PATH" -p "$PORT" -a 127.0.0.1 \
-  --no-dotfiles -r --log-ip -U -c-1 --cors -d false -i false &
+if [ ! -d node_modules/express ] || [ ! -d node_modules/compression ]; then
+  npm install --save-dev express compression
+fi
+node ./scripts/utils/express-server.mjs "$SERVE_PATH" "$PORT" &
 SERVER_PID=$!
+
 wait "$SERVER_PID"
 status=$?
 
