@@ -61,6 +61,10 @@
           cat >> .env <<EOF
           GEMINI_API_KEY=""
           EOF
+          npm run bundle:android &
+          npm run bundle:ios &
+          npm run bundle:web &
+          wait
           exit
         '';
       };
