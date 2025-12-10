@@ -53,9 +53,9 @@
     "**/node_modules": true,
     "**/tmp": true,
     "**/.tmp": true,
-    "**/android": true,
-    "**/ios": true,
-    "**/scripts": true,
+    "android/": true,
+    "ios/": true,
+    "scripts/": true,
     "build": true,
     "gradle": true,
     "package-lock.json": true
