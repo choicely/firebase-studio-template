@@ -6,10 +6,11 @@
   # Use https://search.nixos.org/packages to find packages
   packages = [
     pkgs.nodejs_20
+    pkgs.jdk17
     pkgs.cloudflared
     pkgs.qrencode
     pkgs.zip
-    pkgs.jdk17
+    pkgs.zstd
     pkgs.watchman
   ];
   services.docker.enable = false;
