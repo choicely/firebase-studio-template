@@ -2,7 +2,6 @@ gradlew
 gradlew.bat
 gradle/
 
-
 # Exclude Native Code - The agent should treat this as a black box
 android/
 android/**
