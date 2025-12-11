@@ -20,7 +20,7 @@
     rm -rf "$out/.git" "$out/idx-template".{nix,json}
     cd "$out"
     tmpdir="$(mktemp -d)"
-    curl -L "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/split.tar.gz" \
+    curl -L "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
       | tar -xzf - -C "$tmpdir"
     rsync -a --ignore-existing \
       "$tmpdir"/choicely-sdk-demo-react-native-split/ \
