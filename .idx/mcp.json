@@ -2,11 +2,7 @@
   "mcpServers": {
     "choicely-docs": {
       "url": "https://docs.choicely.com/mcp",
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "idempotentHint": true
-      }
+      "excludeTools": []
     }
   }
 }
