@@ -23,7 +23,7 @@
     curl -L "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
       | tar -xzf - -C "$tmpdir"
     rsync -a --ignore-existing \
-      "$tmpdir"/choicely-sdk-demo-react-native/ \
+      "$tmpdir"/choicely-sdk-demo-react-native-main/ \
       "$out"/
     rm -rf "$tmpdir"
     rm -rf \
