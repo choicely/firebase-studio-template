@@ -3,7 +3,7 @@
   "description": "Create cross-platform native apps.",
   "categories": ["Mobile"],
   "publisher": "Choicely",
-  "icon": "https://raw.githubusercontent.com/choicely/choicely-sdk-demo-react-native/refs/heads/main/.idx/icon.png",
+  "icon": "https://raw.githubusercontent.com/choicely/firebase-studio-template/refs/heads/main/.idx/icon.png",
   "params": [
     {
       "id": "app_key",
