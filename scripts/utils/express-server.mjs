@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+import path from 'node:path';
+
 import express from 'express';
 import compression from 'compression';
-import path from 'node:path';
 
 const [, , rootArg, portArg] = process.argv;
 
@@ -16,10 +17,8 @@ const port = Number(portArg);
 const app = express();
 
 const shouldCompress = (req, res) => {
-  if (req.headers['x-no-compression']) {
-    return false;
-  }
-  return true;
+  return !req.headers['x-no-compression'];
+
 };
 
 app.use(
