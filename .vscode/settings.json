@@ -57,9 +57,18 @@
     "android/": true,
     "ios/": true,
     "scripts/": true,
-    "build": true,
-    "gradle": true,
-    "package-lock.json": true
+    "build/": true,
+    "gradle/": true,
+    "dist/": true,
+    "package-lock.json": true,
+    ".gitignore": true,
+    ".aiexclude": true,
+    ".watchmanconfig": true,
+    "default.env": true,
+    "GEMINI.md": true,
+    "**/*.config.js": true,
+    "**/dev": true,
+    "**/web": true
   },
   "files.watcherExclude": {
     "**/.DS_Store": true,
