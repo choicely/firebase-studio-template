@@ -3,30 +3,20 @@ gradlew.bat
 gradle/
 
 # Exclude Native Code - The agent should treat this as a black box
-android/
-android/**
-ios/
-ios/**
+/android/
+/ios/
 
 # Exclude Web Harness - Prevents confusion with React Native Web specific configs
-web/
-web/**
+/rn/web/
 
 # Exclude Dev Scripts and Proxies
-scripts/
-dev/
+/rn/dev/
+/scripts/
 
 # Exclude IDE and Project Configs
 .idx/
 .vscode/
 .git/
-.gradle/
-build/
-node_modules/
 
 # Exclude Assets not directly inside src (unless you move assets to src/assets)
-res/
-
-# Exclude Lockfiles to reduce noise
-*.lock
-package-lock.json
+/res/
