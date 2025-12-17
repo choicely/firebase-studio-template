@@ -142,3 +142,13 @@ fastlane/readme.md
 # Testing
 ############################
 coverage/
+
+############################
+# Archive files in root
+############################
+/*.zip
+/*.tar
+/*.tar.gz
+/*.tgz
+/*.7z
+/*.rar
