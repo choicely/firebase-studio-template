@@ -64,7 +64,6 @@
     ".gitignore": true,
     ".aiexclude": true,
     ".watchmanconfig": true,
-    "default.env": true,
     "GEMINI.md": true,
     "**/*.config.js": true,
     "**/dev": true,
