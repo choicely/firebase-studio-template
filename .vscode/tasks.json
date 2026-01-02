@@ -5,10 +5,8 @@
       "label": "Open Choicely App Widget in Simple Browser",
       "command": "${input:openSimpleBrowser}",
       "type": "shell",
-      "problemMatcher": [],
-      "runOptions": {
-        "runOn": "folderOpen"
-      }
+      // "runOptions": {"runOn": "folderOpen"},
+      "problemMatcher": []
     }
   ],
   "inputs": [
