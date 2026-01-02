@@ -1,23 +1,43 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Choicely Preview</title>
     <style>
         :root {
+          --focus: #37ff95;
+          --fg: #d9e6e0;
+          --fg-strong: #e6f6f0;
+          --muted: #6a7671;
+
+          --bg: #0b0f0e;
+          --panel: #0e1211;
+          --sidebar: #0d1211;
+          --frame: #0f1413;
+          --border: #101514;
+
+          --sel: #37ff9526;
+          --sel-2: #37ff951a;
+          --line: #37ff950f;
+
           --page-pad: clamp(12px, 3vh, 28px);
           --phone-w: min(420px, calc(100vw - (var(--page-pad) * 2)));
-          --header-gap: 12px; /* how tightly it hugs */
-          --phone-h: calc(100dvh - (var(--page-pad) * 2) - 64px); /* space reserved for header */
+          --header-gap: 12px;
+          --phone-h: calc(100dvh - (var(--page-pad) * 2) - 96px);
           --phone-radius: 34px;
           --bezel: 12px;
-          --shadow: 0 24px 80px rgba(0, 0, 0, .35);
-          --bg: #0b0b10;
-          --bezel-edge: rgba(255, 255, 255, .08);
+
+          --shadow: 0 24px 80px rgba(0, 0, 0, .55);
+          --bezel-edge: rgba(255, 255, 255, .10);
         }
 
-        html, body { height: 100%; margin: 0; }
+        html,
+        body {
+          height: 100%;
+          margin: 0;
+        }
 
         body {
           height: 100dvh;
@@ -25,58 +45,109 @@
           overscroll-behavior: none;
 
           display: grid;
-          place-items: center; /* center the whole stack */
+          place-items: center;
           padding: var(--page-pad);
 
+          color: var(--fg);
           background-color: var(--bg);
           background-image:
-            radial-gradient(1200px 800px at 50% 20%, rgba(120, 140, 255, .15), transparent 60%),
-            radial-gradient(900px 700px at 20% 90%, rgba(0, 255, 220, .10), transparent 55%);
+            radial-gradient(900px 700px at 50% 15%, rgba(55, 255, 149, .10), transparent 55%),
+            radial-gradient(1100px 800px at 20% 90%, rgba(55, 255, 149, .06), transparent 60%),
+            linear-gradient(180deg, rgba(255, 255, 255, .02), transparent 30%);
           background-repeat: no-repeat;
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
-          color: #fff;
+
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
         }
 
-        /* Header + phone as one unit */
         .stack {
-          width: var(--phone-w);           /* hug the phone width */
+          width: var(--phone-w);
           display: flex;
           flex-direction: column;
-          gap: var(--header-gap);          /* small breathing room */
+          gap: var(--header-gap);
           align-items: stretch;
         }
 
         .header {
           text-align: center;
-          font: 500 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-          color: rgba(255,255,255,.92);
+          color: rgba(217, 230, 224, .95);
+          font: 500 14px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
         }
 
         .header h1 {
           margin: 0 0 6px;
           font-size: clamp(18px, 2.2vw, 26px);
-          font-weight: 750;
+          font-weight: 780;
           letter-spacing: -0.02em;
-          color: #fff;
+          color: var(--fg-strong);
+          text-shadow: 0 0 18px rgba(55, 255, 149, .10);
         }
 
         .header p {
           margin: 0;
-          opacity: .82;
+          color: rgba(217, 230, 224, .78);
+        }
+
+        .actions {
+          display: flex;
+          justify-content: center;
+          margin-top: 10px;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 14px;
+          border-radius: 14px;
+          text-decoration: none;
+
+          background: var(--focus);
+          color: var(--bg);
+          font: 750 14px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+
+          border: 1px solid rgba(0, 0, 0, .20);
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, .35),
+            0 0 0 1px rgba(55, 255, 149, .20);
+
+          transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:hover {
+          filter: brightness(1.03);
+          transform: translateY(-1px);
+          box-shadow:
+            0 12px 34px rgba(0, 0, 0, .40),
+            0 0 0 2px rgba(55, 255, 149, .22);
+        }
+
+        .btn:active {
+          transform: translateY(0px);
+        }
+
+        .btn:focus-visible {
+          outline: 2px solid var(--focusBorder, var(--focus));
+          outline-offset: 3px;
         }
 
         .phone {
           width: 100%;
           height: var(--phone-h);
           max-height: 900px;
+
           border-radius: var(--phone-radius);
-          background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+          background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
           box-shadow: var(--shadow);
           position: relative;
           padding: var(--bezel);
-          border: 1px solid rgba(255, 255, 255, .10);
+
+          border: 1px solid var(--border);
+          background-color: rgba(14, 18, 17, .35);
           backdrop-filter: blur(10px);
           -webkit-backdrop-filter: blur(10px);
         }
@@ -87,7 +158,7 @@
           border-radius: calc(var(--phone-radius) - var(--bezel));
           overflow: hidden;
           background: #000;
-          border: 1px solid var(--bezel-edge);
+          border: 1px solid rgba(255, 255, 255, .08);
           position: relative;
         }
 
@@ -101,7 +172,7 @@
 
         .error,
         .error * {
-          color: #fff;
+          color: var(--fg-strong);
         }
 
         .error {
@@ -113,43 +184,50 @@
           padding: 28px;
           text-align: center;
           z-index: 2;
+
           background:
-            radial-gradient(800px 500px at 50% 30%, rgba(255, 80, 80, .14), transparent 60%),
-            rgba(0, 0, 0, .82);
-          font: 600 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            radial-gradient(800px 500px at 50% 30%, rgba(55, 255, 149, .10), transparent 60%),
+            rgba(11, 15, 14, .92);
+          font: 650 14px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
         }
 
         .error .box {
-          max-width: 320px;
-          border: 1px solid rgba(255, 255, 255, .14);
+          max-width: 340px;
+          border: 1px solid rgba(55, 255, 149, .22);
           border-radius: 16px;
           padding: 16px 14px;
-          background: rgba(255, 255, 255, .06);
-          box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+          background: rgba(14, 18, 17, .55);
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, .45),
+            0 0 0 1px rgba(16, 21, 20, .90);
         }
 
         .error .title {
           font-size: 15px;
           margin: 0 0 8px;
+          letter-spacing: -0.01em;
         }
 
         .error code {
-          font-weight: 700;
-          background: rgba(255, 255, 255, .10);
+          font-weight: 800;
+          background: var(--sel);
+          color: var(--focus);
           padding: 2px 6px;
           border-radius: 8px;
+          border: 1px solid rgba(55, 255, 149, .22);
         }
 
         .error .hint {
-          opacity: .85;
+          opacity: .86;
           margin: 0;
+          color: rgba(217, 230, 224, .85);
         }
 
         @media (max-width: 380px) {
           :root {
             --phone-radius: 26px;
             --bezel: 10px;
-            --phone-h: calc(100dvh - (var(--page-pad) * 2) - 58px);
+            --phone-h: calc(100dvh - (var(--page-pad) * 2) - 90px);
           }
         }
     </style>
@@ -160,6 +238,11 @@
     <div class="header">
         <h1>Preview your Choicely mobile app</h1>
         <p>Scan the QR code to preview on a real device.</p>
+        <div class="actions">
+            <a class="btn" href="https://studio.choicely.com" target="_blank" rel="noopener noreferrer">
+                Open in Choicely Studio
+            </a>
+        </div>
     </div>
 
     <div class="phone" role="region" aria-label="Phone preview frame">
@@ -190,4 +273,5 @@
     iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
 </script>
 </body>
+
 </html>
