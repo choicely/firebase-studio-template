@@ -43,7 +43,7 @@
     [ -f .env ] && source .env
     set +a
     chmod -R a+x scripts
-    ./scripts/update_tasks.sh "$CHOICELY_APP_KEY" &
+    # ./scripts/update_tasks.sh "$CHOICELY_APP_KEY" &
     # Install npm dependencies
     curl -sSL "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.3-alpha/node_modules-linux-x86_64-node20.tar.gz" \
       | tar -xzf - --keep-old-files >/dev/null 2>&1 || true

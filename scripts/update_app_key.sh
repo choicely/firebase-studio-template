@@ -3,7 +3,7 @@ set -euo pipefail
 
 NEW_APP_KEY="${CHOICELY_APP_KEY}"
 
-./scripts/update_tasks.sh "${NEW_APP_KEY}" &
+# ./scripts/update_tasks.sh "${NEW_APP_KEY}" &
 raw_name=${CHOICELY_APP_NAME:-}
 lower_name=$(printf '%s\n' "$raw_name" | tr '[:upper:]' '[:lower:]')
 safe_app_name=${lower_name//[^a-z0-9_-]/-}
