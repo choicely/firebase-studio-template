@@ -3,28 +3,25 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Choicely Widget</title>
+    <title>Choicely Preview</title>
     <style>
-        html, body {
-          height: 100%;
-          width: 100%;
-          margin: 0;
-        }
-        iframe {
-          display: block;
-          border: 0;
-          width: 100vw;
-          height: 100vh;
-        }
+        html, body { height: 100%; margin: 0; }
+        iframe { display: block; border: 0; width: 100%; height: 100dvh; }
     </style>
 </head>
 <body>
-<iframe
-        src="https://cdn.choicely.com/vx/widget.html?wak=Y2hvaWNlbHktZXUvYXBwcy9mY3Zud1hpUGVDemFFcGNVSzBreA"
-        title="Choicely Widget"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        allow="fullscreen"
-></iframe>
+<iframe id="w" title="Choicely Widget"></iframe>
+
+<script src="./config.js"></script>
+<script>
+    const wak = window.__CHOICELY_APP_KEY__;
+    if (!wak || wak === "__CHOICELY_APP_KEY__") {
+      document.body.textContent = "CHOICELY_APP_KEY is not set (config.js not generated).";
+      throw new Error("CHOICELY_APP_KEY missing");
+    }
+
+    document.getElementById("w").src =
+      "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
+</script>
 </body>
 </html>
