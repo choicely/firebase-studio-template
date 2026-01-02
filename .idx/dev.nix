@@ -88,12 +88,9 @@
       previews = {
         web = {
           command = [
-            "npm"
-            "run"
-            "preview"
-            "--"
-            "--port"
-            "$PORT"
+            "bash"
+            "-lc"
+            "source \"$HOME/.bashrc\" && npm run preview -- --port \"$PORT\""
           ];
           manager = "web";
         };
