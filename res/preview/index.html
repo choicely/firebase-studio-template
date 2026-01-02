@@ -33,7 +33,9 @@
           --bezel-edge: rgba(255, 255, 255, .10);
         }
 
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
           box-sizing: border-box;
         }
 
@@ -234,6 +236,139 @@
             --phone-h: calc(100dvh - (var(--page-pad) * 2) - 90px);
           }
         }
+
+        *,
+        *::before,
+        *::after {
+          box-sizing: border-box;
+        }
+
+        /* Actions row: two buttons */
+        .actions {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 10px;
+          flex-wrap: wrap;
+        }
+
+        /* Secondary button style */
+        .btn.secondary {
+          background: rgba(217, 230, 224, .06);
+          color: var(--fg-strong);
+          border: 1px solid rgba(255, 255, 255, .12);
+          box-shadow:
+            0 10px 30px rgba(0, 0, 0, .30),
+            0 0 0 1px rgba(16, 21, 20, .90);
+        }
+
+        .btn.secondary:hover {
+          filter: brightness(1.05);
+          box-shadow:
+            0 12px 34px rgba(0, 0, 0, .38),
+            0 0 0 1px rgba(55, 255, 149, .12);
+        }
+
+        /* QR overlay */
+        .qr-overlay {
+          position: fixed;
+          inset: 0;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          padding: var(--page-pad);
+          z-index: 999;
+        }
+
+        .qr-overlay[aria-hidden="false"] {
+          display: flex;
+        }
+
+        .qr-backdrop {
+          position: absolute;
+          inset: 0;
+          background: rgba(11, 15, 14, .55);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+
+        .qr-modal {
+          position: relative;
+          z-index: 1;
+          width: min(520px, calc(100vw - (var(--page-pad) * 2)));
+          border-radius: 18px;
+          border: 1px solid rgba(55, 255, 149, .22);
+          background: rgba(14, 18, 17, .72);
+          box-shadow:
+            0 24px 80px rgba(0, 0, 0, .55),
+            0 0 0 1px rgba(16, 21, 20, .90);
+          padding: 16px;
+        }
+
+        .qr-close {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, .12);
+          background: rgba(217, 230, 224, .06);
+          color: var(--fg-strong);
+          cursor: pointer;
+          display: grid;
+          place-items: center;
+          font: 800 16px/1 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        }
+
+        .qr-close:hover {
+          filter: brightness(1.08);
+        }
+
+        .qr-title {
+          margin: 0 44px 12px 0;
+          font: 700 14px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+          color: rgba(217, 230, 224, .92);
+        }
+
+        .qr-img {
+          display: block;
+          width: min(360px, 100%);
+          height: auto;
+          margin: 0 auto;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, .10);
+          background: rgba(0, 0, 0, .25);
+        }
+
+        .qr-status {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 0 0 12px 0;
+          color: rgba(217, 230, 224, .88);
+          font: 650 13px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        }
+
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border-radius: 999px;
+          border: 2px solid rgba(217, 230, 224, .22);
+          border-top-color: rgba(55, 255, 149, .95);
+          animation: spin 0.9s linear infinite;
+          flex: 0 0 auto;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        [hidden] {
+          display: none !important;
+        }
     </style>
 </head>
 
@@ -243,6 +378,10 @@
         <h1>Preview your Choicely mobile app</h1>
         <p>Scan the QR code to preview on a real device.</p>
         <div class="actions">
+            <a id="showQr" class="btn secondary" href="#" role="button">
+                Show QR
+            </a>
+
             <a class="btn" href="https://studio.choicely.com" target="_blank" rel="noopener noreferrer">
                 Open in Choicely Studio
             </a>
@@ -261,8 +400,26 @@
         </div>
     </div>
 </div>
+<div id="qrOverlay" class="qr-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="QR Code">
+    <div class="qr-backdrop" data-close="true"></div>
 
+    <div class="qr-modal" role="document">
+        <button class="qr-close" type="button" aria-label="Close" data-close="true">×</button>
+
+        <p class="qr-title">
+            Scan the QR code on your Android device to download the app on your phone (iOS preview not supported yet)
+        </p>
+
+        <div id="qrStatus" class="qr-status">
+            <span class="spinner" aria-hidden="true"></span>
+            <span id="qrStatusText">Loading QR…</span>
+        </div>
+
+        <img id="qrImg" class="qr-img" src="./qr.png" alt="QR code" hidden />
+    </div>
+</div>
 <script src="./config.js"></script>
+
 <script>
     const wak = window.__CHOICELY_APP_KEY__;
     const iframe = document.getElementById("w");
@@ -275,7 +432,64 @@
     }
 
     iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
+
+    const showQrBtn = document.getElementById("showQr");
+    const qrOverlay = document.getElementById("qrOverlay");
+
+    const qrImg = document.getElementById("qrImg");
+    const qrStatus = document.getElementById("qrStatus");
+    const qrStatusText = document.getElementById("qrStatusText");
+
+    const setLoading = (text) => {
+      qrStatus.hidden = false;
+      qrStatusText.textContent = text;
+      qrImg.hidden = true;
+    };
+
+    const showImage = () => {
+      qrStatus.hidden = true;
+      qrImg.hidden = false;
+    };
+
+    const loadQr = () => {
+      setLoading("Loading QR…");
+
+      const url = "./qr.png?t=" + Date.now();
+
+      qrImg.onload = () => showImage();
+      qrImg.onerror = () => setLoading("Preparing app download...");
+
+      qrImg.src = url;
+    };
+
+    const openQr = () => {
+      qrOverlay.setAttribute("aria-hidden", "false");
+      document.addEventListener("keydown", onKeydown);
+      loadQr();
+    };
+
+    const closeQr = () => {
+      qrOverlay.setAttribute("aria-hidden", "true");
+      document.removeEventListener("keydown", onKeydown);
+    };
+
+    const onKeydown = (e) => {
+      if (e.key === "Escape") closeQr();
+    };
+
+    showQrBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      openQr();
+    });
+
+    qrOverlay.addEventListener("click", (e) => {
+      const t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-close") === "true") {
+        closeQr();
+      }
+    });
 </script>
+
 </body>
 
 </html>

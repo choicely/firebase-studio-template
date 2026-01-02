@@ -18,10 +18,10 @@ else
     "$apk_path" &
 fi
 
-export QR_CODE_PATH=./out/qr-download-apk.png
+export QR_CODE_PATH=./res/preview/qr.png
 ./scripts/create_apk_qr.sh
 wait
-code -r -g "$QR_CODE_PATH" >/dev/null 2>&1 || true
+# code -r -g "$QR_CODE_PATH" >/dev/null 2>&1 || true
 
 while :; do
   sleep 1
