@@ -1,27 +1,160 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Choicely Preview</title>
     <style>
-        html, body { height: 100%; margin: 0; }
-        iframe { display: block; border: 0; width: 100%; height: 100dvh; }
+        :root {
+          --page-pad: clamp(12px, 3vh, 28px);
+          --phone-w: min(420px, calc(100vw - (var(--page-pad) * 2)));
+          --phone-h: calc(100dvh - (var(--page-pad) * 2));
+          --phone-radius: 34px;
+          --bezel: 12px;
+          --shadow: 0 24px 80px rgba(0, 0, 0, .35);
+          --bg: #0b0b10;
+          --bezel-edge: rgba(255, 255, 255, .08);
+        }
+
+        html,
+        body {
+          height: 100%;
+          margin: 0;
+        }
+
+        body {
+          height: 100dvh;
+          overflow: hidden;
+          overscroll-behavior: none;
+          display: grid;
+          place-items: center;
+          padding: var(--page-pad);
+
+          background-color: var(--bg);
+          background-image:
+            radial-gradient(1200px 800px at 50% 20%, rgba(120, 140, 255, .15), transparent 60%),
+            radial-gradient(900px 700px at 20% 90%, rgba(0, 255, 220, .10), transparent 55%);
+          background-repeat: no-repeat;
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+        }
+
+        .phone {
+          width: var(--phone-w);
+          height: var(--phone-h);
+          max-height: 900px;
+          border-radius: var(--phone-radius);
+          background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+          box-shadow: var(--shadow);
+          position: relative;
+          padding: var(--bezel);
+          border: 1px solid rgba(255, 255, 255, .10);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+        }
+
+        .screen {
+          height: 100%;
+          width: 100%;
+          border-radius: calc(var(--phone-radius) - var(--bezel));
+          overflow: hidden;
+          background: #000;
+          border: 1px solid var(--bezel-edge);
+          position: relative;
+        }
+
+        iframe {
+          display: block;
+          border: 0;
+          width: 100%;
+          height: 100%;
+          background: #000;
+        }
+
+        .error,
+        .error * {
+          color: #fff;
+        }
+
+        .error {
+          position: absolute;
+          inset: 0;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          padding: 28px;
+          text-align: center;
+          z-index: 2;
+          /* above iframe */
+          background: radial-gradient(800px 500px at 50% 30%, rgba(255, 80, 80, .14), transparent 60%),
+            rgba(0, 0, 0, .82);
+          font: 600 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .error .box {
+          max-width: 320px;
+          border: 1px solid rgba(255, 255, 255, .14);
+          border-radius: 16px;
+          padding: 16px 14px;
+          background: rgba(255, 255, 255, .06);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+        }
+
+        .error .title {
+          font-size: 15px;
+          margin: 0 0 8px;
+        }
+
+        .error code {
+          font-weight: 700;
+          background: rgba(255, 255, 255, .10);
+          padding: 2px 6px;
+          border-radius: 8px;
+        }
+
+        .error .hint {
+          opacity: .85;
+          margin: 0;
+        }
+
+        @media (max-width: 380px) {
+          :root {
+            --phone-radius: 26px;
+            --bezel: 10px;
+          }
+        }
     </style>
 </head>
+
 <body>
-<iframe id="w" title="Choicely Widget"></iframe>
+<div class="phone" role="region" aria-label="Phone preview frame">
+    <div class="screen">
+        <div id="err" class="error" role="alert" aria-live="polite">
+            <div class="box">
+                <p class="title">Missing <code>CHOICELY_APP_KEY</code></p>
+                <p class="hint">config.js was not generated (or it still contains the placeholder).</p>
+            </div>
+        </div>
+        <iframe id="w" title="Choicely Widget" allow="fullscreen"></iframe>
+    </div>
+</div>
 
 <script src="./config.js"></script>
 <script>
     const wak = window.__CHOICELY_APP_KEY__;
+    const iframe = document.getElementById("w");
+    const err = document.getElementById("err");
+
     if (!wak || wak === "__CHOICELY_APP_KEY__") {
-      document.body.textContent = "CHOICELY_APP_KEY is not set (config.js not generated).";
+      err.style.display = "flex";
+      iframe.removeAttribute("src");
       throw new Error("CHOICELY_APP_KEY missing");
     }
 
-    document.getElementById("w").src =
-      "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
+    iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
 </script>
 </body>
+
 </html>
