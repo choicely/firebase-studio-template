@@ -60,6 +60,8 @@
     "build/": true,
     "gradle/": true,
     "dist/": true,
+    "out/": true,
+    "res/": true,
     "package-lock.json": true,
     ".gitignore": true,
     ".aiexclude": true,
