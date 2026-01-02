@@ -22,6 +22,7 @@ scratch/
 .env
 local.properties
 **/.xcode.env.local
+res/preview/config.js
 
 ############################
 # Build output (generic)

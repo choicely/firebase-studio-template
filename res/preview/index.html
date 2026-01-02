@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -9,7 +8,8 @@
         :root {
           --page-pad: clamp(12px, 3vh, 28px);
           --phone-w: min(420px, calc(100vw - (var(--page-pad) * 2)));
-          --phone-h: calc(100dvh - (var(--page-pad) * 2));
+          --header-gap: 12px; /* how tightly it hugs */
+          --phone-h: calc(100dvh - (var(--page-pad) * 2) - 64px); /* space reserved for header */
           --phone-radius: 34px;
           --bezel: 12px;
           --shadow: 0 24px 80px rgba(0, 0, 0, .35);
@@ -17,18 +17,15 @@
           --bezel-edge: rgba(255, 255, 255, .08);
         }
 
-        html,
-        body {
-          height: 100%;
-          margin: 0;
-        }
+        html, body { height: 100%; margin: 0; }
 
         body {
           height: 100dvh;
           overflow: hidden;
           overscroll-behavior: none;
+
           display: grid;
-          place-items: center;
+          place-items: center; /* center the whole stack */
           padding: var(--page-pad);
 
           background-color: var(--bg);
@@ -39,10 +36,39 @@
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
+          color: #fff;
+        }
+
+        /* Header + phone as one unit */
+        .stack {
+          width: var(--phone-w);           /* hug the phone width */
+          display: flex;
+          flex-direction: column;
+          gap: var(--header-gap);          /* small breathing room */
+          align-items: stretch;
+        }
+
+        .header {
+          text-align: center;
+          font: 500 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+          color: rgba(255,255,255,.92);
+        }
+
+        .header h1 {
+          margin: 0 0 6px;
+          font-size: clamp(18px, 2.2vw, 26px);
+          font-weight: 750;
+          letter-spacing: -0.02em;
+          color: #fff;
+        }
+
+        .header p {
+          margin: 0;
+          opacity: .82;
         }
 
         .phone {
-          width: var(--phone-w);
+          width: 100%;
           height: var(--phone-h);
           max-height: 900px;
           border-radius: var(--phone-radius);
@@ -87,8 +113,8 @@
           padding: 28px;
           text-align: center;
           z-index: 2;
-          /* above iframe */
-          background: radial-gradient(800px 500px at 50% 30%, rgba(255, 80, 80, .14), transparent 60%),
+          background:
+            radial-gradient(800px 500px at 50% 30%, rgba(255, 80, 80, .14), transparent 60%),
             rgba(0, 0, 0, .82);
           font: 600 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
         }
@@ -123,21 +149,29 @@
           :root {
             --phone-radius: 26px;
             --bezel: 10px;
+            --phone-h: calc(100dvh - (var(--page-pad) * 2) - 58px);
           }
         }
     </style>
 </head>
 
 <body>
-<div class="phone" role="region" aria-label="Phone preview frame">
-    <div class="screen">
-        <div id="err" class="error" role="alert" aria-live="polite">
-            <div class="box">
-                <p class="title">Missing <code>CHOICELY_APP_KEY</code></p>
-                <p class="hint">config.js was not generated (or it still contains the placeholder).</p>
+<div class="stack">
+    <div class="header">
+        <h1>Preview your Choicely mobile app</h1>
+        <p>Scan the QR code to preview on a real device.</p>
+    </div>
+
+    <div class="phone" role="region" aria-label="Phone preview frame">
+        <div class="screen">
+            <div id="err" class="error" role="alert" aria-live="polite">
+                <div class="box">
+                    <p class="title">Missing <code>CHOICELY_APP_KEY</code></p>
+                    <p class="hint">config.js was not generated (or it still contains the placeholder).</p>
+                </div>
             </div>
+            <iframe id="w" title="Choicely Widget" allow="fullscreen"></iframe>
         </div>
-        <iframe id="w" title="Choicely Widget" allow="fullscreen"></iframe>
     </div>
 </div>
 
@@ -156,5 +190,4 @@
     iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
 </script>
 </body>
-
 </html>
