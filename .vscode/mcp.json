@@ -1,9 +1,0 @@
-{
-  "inputs": [],
-  "servers": {
-    "choicely-sdk-docs": {
-      "url": "https://docs.choicely.com/mcp",
-      "type": "http"
-    }
-  }
-}
