@@ -3,7 +3,6 @@ set -euo pipefail
 
 NEW_APP_KEY="${CHOICELY_APP_KEY}"
 
-# ./scripts/update_tasks.sh "${NEW_APP_KEY}" &
 raw_name=${CHOICELY_APP_NAME:-}
 lower_name=$(printf '%s\n' "$raw_name" | tr '[:upper:]' '[:lower:]')
 safe_app_name=${lower_name//[^a-z0-9_-]/-}
@@ -13,7 +12,7 @@ if [ -f "$apk_path" ]; then
   echo "APK already exists at: $apk_path"
 else
   ./scripts/android/patch_apk.sh \
-    "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.3-alpha/choicely-rn.apk" \
+    "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.4-alpha/choicely-rn.apk" \
     "${NEW_APP_KEY}" \
     "$apk_path" &
 fi
@@ -21,7 +20,6 @@ fi
 export QR_CODE_PATH=./res/preview/qr.png
 ./scripts/create_apk_qr.sh
 wait
-# code -r -g "$QR_CODE_PATH" >/dev/null 2>&1 || true
 
 while :; do
   sleep 1

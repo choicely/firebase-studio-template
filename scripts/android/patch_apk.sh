@@ -14,7 +14,7 @@ fi
 
 BASE_APK="$1"
 NEW_CHOICELY_APP_KEY="$2"
-APK_KEYSTORE_FULL="$(realpath "$APK_KEYSTORE")"
+APK_KEYSTORE_FULL="$(realpath "./$APK_KEYSTORE")"
 
 WORKDIR="$(mktemp -d)"
 cleanup() {
