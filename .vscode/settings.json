@@ -44,6 +44,7 @@
     "**/build/outputs/logs": true,
     "**/gradle/wrapper": true,
     "**/node_modules": true,
+    "signing/": true,
     "android/": true,
     "ios/": true,
     "scripts/": true,
@@ -90,7 +91,8 @@
     "/out/**": true,
     "/dist/**": true,
     "/scripts/**": true,
-    "/res/**": true
+    "/res/**": true,
+    "/signing/**": true
   },
   "git.autofetch": false,
   "git.openRepositoryInParentFolders": "never",

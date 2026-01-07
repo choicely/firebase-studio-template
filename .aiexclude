@@ -20,6 +20,7 @@ gradle/
 
 # Exclude Assets not directly inside src (unless you move assets to src/assets)
 /res/
+/signing/
 
 # Lock files
 *.lock
