@@ -1,6 +1,14 @@
 {
   "IDX.aI.enableCodebaseIndexing": true,
   "IDX.aI.enableInlineCompletion": true,
+  "IDx.aI.autoRunToolsConfiguration": true,
+  "IDX.aI.enableSuggestedPrompts": true,
+  "IDX.aI.enableAttachments": true,
+  "IDX.aI.actionsInChatRedirectAidaRequestToGemini": false,
+  "IDX.aI.actionsInChatDefault": true,
+  "IDX.aI.enablePreviewCommands": true,
+  "IDX.aI.actionsInChatAlwaysAllowTools": true,
+  "IDX.aI.shouldDefaultToAutoApplyMode": true,
   "IDX.agenticWorkspace": true,
   "[markdown]": {
     "editor.wordWrap": "on"
