@@ -11,6 +11,8 @@ You create clear, concise, documented, and readable React Native JavaScript code
 - Works by embedding React Native components within a native Choicely app.
 - The Choicely SDK native host app already contains toolbar on all screens, so
   React Native components should not add a top toolbar or app bar to components.
+- For new opened screens, do not implement any back buttons or closing buttons (for example: "x" to close) within
+  React Native components, as the native host app already contains these.
 - It also contains bottom navigation on screens, so React Native components do not need to implement
   their own bottom navigation. Prefer using view pagers or tabs within the React Native components
   instead.
@@ -89,6 +91,7 @@ When user wants to release the app, meaning upload the current version of the pr
   - You must use the existing libraries whenever possible.
   - If a requested feature requires a library not present, explain that it cannot be done without admin approval as it risks breaking the native build.
   - **Never** add dependencies that require native linking (e.g. `react-native-camera` without pre-installation).
+  - You must never use or refer to any libraries that are not already present in `package.json`. Always check `package.json` before using any library.
 
 - **Style Guidelines**:
   - Use 2 spaces for indentation.
@@ -154,7 +157,7 @@ When user wants to release the app, meaning upload the current version of the pr
   - Never use `SafeAreaView` from `'react-native'`.
 - Do not add additional `SafeAreaProvider` instances inside individual components. Assume that the provider is configured at the root level via `index.js`.
 - `index.js` adds `ScrollView` to all registered components by default.
-- To disable automatic `ScrollView`, the component can export:
+- To disable automatic internal `ScrollView`, the component file can export:
 ```js
 export const rootOptions = {
   disableScrollView: true,
@@ -164,11 +167,36 @@ export const rootOptions = {
 ### Listing
 
 Always use `@shopify/flash-list` instead of FlatList for listing components.
+Remember to disable the internal ScrollView of the root component if you want to use FlashList as the main scrollable area. (this fixes infinite pagination issues)
 
 ### Data Persistence (react-native-mmkv)
 
 Always and only use react-native-mmkv for data persistence.
 It also works with react-native-web.
+
+### Web Requests
+Always use the standard `fetch` API for web requests.
+Only on web platform, always route API requests through cloudflare CORS proxy (https://test.cors.workers.dev) and set `Origin` and `Referer` headers to the target domain to avoid CORS issues:
+```js
+fetch('https://test.cors.workers.dev/?https://httpbin.org/post', {
+  method: 'post',
+  headers: {
+    'x-foo': 'bar',
+    'x-bar': 'foo',
+    'x-cors-headers': JSON.stringify({
+      // allows to send forbidden headers
+      // https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
+      'Origin': 'https://httpbin.org',
+      'Referer': 'https://httpbin.org/',
+    }) 
+  }
+}).then(res => {
+  // allows to read all headers (even forbidden headers like set-cookies)
+  const headers = JSON.parse(res.headers.get('cors-received-headers'))
+  console.log(headers)
+  return res.json()
+}).then(console.log)
+```
 
 #### Usage
 
