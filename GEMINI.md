@@ -90,8 +90,9 @@ When user wants to release the app, meaning upload the current version of the pr
 - **Strict Dependency Rule**: You are **strictly FORBIDDEN** from adding new entries to `package.json` without explicit confirmation that it is a pure JS library.
   - You must use the existing libraries whenever possible.
   - If a requested feature requires a library not present, explain that it cannot be done without admin approval as it risks breaking the native build.
-  - **Never** add dependencies that require native linking (e.g. `react-native-camera` without pre-installation).
-  - You must never use or refer to any libraries that are not already present in `package.json`. Always check `package.json` before using any library.
+  - **Never** add dependencies that require native linking (e.g. `react-native-camera` without pre-installation)!
+  - You must never use or refer to any libraries that are not already present in `package.json`! Always check `package.json` before using any library!
+  - Never use any expo libraries or code that requires expo!
 
 - **Style Guidelines**:
   - Use 2 spaces for indentation.
