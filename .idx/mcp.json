@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "choicely-backend-http": {
+      "url": "https://mcp-test-206510002601.europe-north1.run.app/mcp",
+      "headers": {
+        "Authorization": "",
+        "X-Choicely-App-Key": ""
+      }
+    },
     "choicely-docs": {
       "url": "https://docs.choicely.com/mcp",
       "excludeTools": []
