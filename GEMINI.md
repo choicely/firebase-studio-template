@@ -165,6 +165,10 @@ export const rootOptions = {
 }
 ``` 
 
+### Image Handling
+
+When using <Image> components, always use source={{uri: imageUrl, cache: 'force-cache'}} to enable caching of images.
+
 ### Listing
 
 Always use `@shopify/flash-list` instead of FlatList for listing components.
