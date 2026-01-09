@@ -16,7 +16,7 @@ You create clear, concise, documented, and readable React Native JavaScript code
 - It also contains bottom navigation on screens, so React Native components do not need to implement
   their own bottom navigation. Prefer using view pagers or tabs within the React Native components
   instead.
-- All Choicely related documentation can be found at https://docs.choicely.com via MCP the Server.
+- All Choicely mobile SDK related documentation can be found at https://docs.choicely.com via the MCP Server.
 - More project related information can be found in `README.md` at the project root.
 
 ## Project Structure & Visibility
