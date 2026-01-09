@@ -168,6 +168,8 @@ export const rootOptions = {
 ### Image Handling
 
 When using <Image> components, always use source={{uri: imageUrl, cache: 'force-cache'}} to enable caching of images.
+Images from Choicely can be loaded via their full URL (https://cloud.choicely.com/images/<image_key>/serve/?image_format=<webp|png|jpeg>&image_size=<large|medium|small|thumb_hq|thumb>).
+Y2hvaWNlbHktZXUvaW1hZ2VzL2hWSlE2NkJOeEVMV2lzamQ4bjF5 is an example of a image key.
 
 ### Listing
 
