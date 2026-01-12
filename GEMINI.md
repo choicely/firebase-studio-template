@@ -170,6 +170,17 @@ export const rootOptions = {
 When using <Image> components, always use source={{uri: imageUrl, cache: 'force-cache'}} to enable caching of images.
 Images from Choicely can be loaded via their full URL (https://cloud.choicely.com/images/<image_key>/serve/?image_format=<webp|png|jpeg>&image_size=<large|medium|small|thumb_hq|thumb>).
 Y2hvaWNlbHktZXUvaW1hZ2VzL2hWSlE2NkJOeEVMV2lzamQ4bjF5 is an example of a image key.
+Use `react-native-svg` for SVG images.
+To load SVG images from URL, use SvgUri component from `react-native-svg` like this:
+```js
+import { SvgUri } from 'react-native-svg'
+<SvgUri
+  width="100%"
+  height="100%"
+  uri="https://example.com/image.svg"
+/>
+```
+Use `react-native-vector-icons` for predefined icons and icon libraries. Do not use nor install any other icon libraries.
 
 ### Listing
 
