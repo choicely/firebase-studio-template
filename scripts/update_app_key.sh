@@ -12,7 +12,7 @@ if [ -f "$apk_path" ]; then
   echo "APK already exists at: $apk_path"
 else
   ./scripts/android/patch_apk.sh \
-    "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.7-alpha/choicely-rn.apk" \
+    "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.8-alpha/choicely-rn.apk" \
     "${NEW_APP_KEY}" \
     "$apk_path" &
 fi

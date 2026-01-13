@@ -45,7 +45,7 @@
     set +a
     chmod -R a+x scripts
     # Install npm dependencies
-    curl -sSL "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.7-alpha/node_modules-linux-x86_64-node20.tar.gz" \
+    curl -sSL "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.8-alpha/node_modules-linux-x86_64-node20.tar.gz" \
       | tar -xzf - --keep-old-files >/dev/null 2>&1 || true
     npm i --no-audit --no-fund --progress=false
   '';
