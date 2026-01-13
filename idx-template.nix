@@ -13,45 +13,53 @@
     # project folder for the new workspace. ${./.} inserts the directory
     # of the checked-out Git folder containing this template.
     cp -rf ${./.} "$out"
-    # Set some permissions
     chmod -R +w "$out"
-    # Remove the template files themselves and any connection to the template's
-    # Git repository
     rm -rf "$out/.git" "$out/idx-template".{nix,json}
     cd "$out"
+
     tmpdir="$(mktemp -d)"
-    curl -L "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
-      | tar -xzf - -C "$tmpdir"
+    trap 'rm -rf "$tmpdir"' EXIT
+
+    repo_tgz="$tmpdir/repo.tgz"
+    mods_tgz="$tmpdir/node_modules.tgz"
+
+    # Kick off both downloads in parallel
+    curl -fL --retry 3 --retry-delay 1 --compressed \
+      "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
+      -o "$repo_tgz" &
+
+    curl -fL --retry 3 --retry-delay 1 --compressed \
+      "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.8-alpha/node_modules-linux-x86_64-node20.tar.gz" \
+      -o "$mods_tgz" &
+
+    wait
+
+    # Extract repo
+    tar -xzf "$repo_tgz" -C "$tmpdir"
     rsync -a --ignore-existing \
       "$tmpdir"/choicely-sdk-demo-react-native-main/ \
       "$out"/
-    rm -rf "$tmpdir"
+
+    # Cleanup repo junk
     rm -rf \
       AGENTS.md \
-      ios \
-      android \
-      gradle \
-      gradlew \
-      gradlew.bat \
-      settings.gradle \
-      gradle.properties \
-      build.gradle || true
+      ios android gradle \
+      gradlew gradlew.bat \
+      settings.gradle gradle.properties build.gradle \
+      || true
+
     printf '%s="%s"\n' "CHOICELY_APP_NAME" "$WS_NAME" >> default.env
     printf '%s=%s\n' "CHOICELY_APP_KEY" "${app_key}" >> default.env
     printf '%s=%s\n' "CHOICELY_API_KEY" "${api_key}" >> .env
 
-    # Configure MCP settings
     jq --arg app_key "${app_key}" --arg api_key "${api_key}" \
-      '.mcpServers."choicely-backend-http".headers."X-Choicely-App-Key" = $app_key | .mcpServers."choicely-backend-http".headers.Authorization = "Bearer " + $api_key' \
+      '.mcpServers."choicely-backend-http".headers."X-Choicely-App-Key" = $app_key
+       | .mcpServers."choicely-backend-http".headers.Authorization = "Bearer " + $api_key' \
       .idx/mcp.json > .idx/mcp.json.tmp && mv .idx/mcp.json.tmp .idx/mcp.json
 
-    set -a
-    [ -f default.env ] && source default.env
-    [ -f .env ] && source .env
-    set +a
     chmod -R a+x scripts
-    # Install npm dependencies
-    curl -sSL "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.8-alpha/node_modules-linux-x86_64-node20.tar.gz" \
-      | tar -xzf - --keep-old-files >/dev/null 2>&1 || true
+
+    # Extract node_modules
+    tar -xzf "$mods_tgz" --keep-old-files >/dev/null 2>&1 || true
   '';
 }
