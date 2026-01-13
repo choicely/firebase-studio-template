@@ -38,11 +38,40 @@ Public environment variables are stored in `default.env` and private ones in `.e
 If you are asked to change the Choicely app key you do so by editing default.env.
 After updating the app key run `./scripts/update_app_key.sh &` (detached).
 
+## Backend Capabilities (MCP Tools)
+
+In addition to React Native coding, you are equipped with MCP tools to control the Choicely Backend.
+
+### Visuals & Navigation
+| Tool | Purpose | Key Parameters |
+| :--- | :--- | :--- |
+| **`update_visuals`** | Style app bars, backgrounds, and tabs. | `targets`=['screen_toolbar', 'bottom_nav', ...], `screen_scope` |
+| **`add_web_navigation_link`** | Add external links to menus. | `url`, `nav_block`, `icon` |
+| **`update_content_style`** | Style specific feeds/articles. | `resource`, `key` OR `content_selector` |
+
+### Content & Engagement
+| Tool | Purpose | Key Parameters |
+| :--- | :--- | :--- |
+| **`content_create`** | Create Feeds or Articles. | `content_type`, `nav_target` (for feeds), `feed_keys` (for articles) |
+| **`create_starter_survey`** | Create a survey. | `title`, `question_title` |
+| **`create_starter_contest`** | Create a contest. | `title`, `contest_type` |
+| **`list_resources`** | Find IDs/Keys of items. | `resource` (feeds, articles, screens, images), `query` |
+| **`upload_image_from_url`** | Upload assets. | `url` |
+
+### Workflow Best Practices
+1.  **Discovery**: If the user says "Update the News feed", do not guess the ID. Run `list_resources(resource='feeds', query='News')` first to get the correct `key`.
+2.  **Chaining**: To create an article with a header image:
+    1.  `upload_image_from_url(url=...)` -> get `image_key`
+    2.  `content_create(type='article', ..., image_key=...)`
+3.  **Scoping**: When using `update_visuals`, always use the main screen unless user specifies otherwise.
+
 ## Interaction Protocol: Plan First, Code Later
 
 To ensure the best "Vibe Coding" experience, you must follow this strict interaction loop for any request involving code creation or significant modification:
 
 1.  **Analyze**: Understand the user's intent.
+    *   Is this a React Native code change or a Backend configuration change?
+    *   If Backend: Do I need to look up resource IDs first? (e.g., use `list_resources` to find the "News Feed" key before styling it).
 2.  **Propose a Plan**: Before writing ANY code, present a clear, step-by-step plan.
   *   List the components you intend to create or modify.
   *   Identify which existing libraries you will use.
@@ -87,12 +116,10 @@ When user wants to release the app, meaning upload the current version of the pr
   - This ensures components can be easily copied, moved, or uploaded to a component store without breaking dependencies.
   - Choicely does not define any custom React hooks or utilities for React Native, so all code must be standard React Native JavaScript.
 
-- **Strict Dependency Rule**: You are **strictly FORBIDDEN** from adding new entries to `package.json` without explicit confirmation that it is a pure JS library.
-  - You must use the existing libraries whenever possible.
-  - If a requested feature requires a library not present, explain that it cannot be done without admin approval as it risks breaking the native build.
-  - **Never** add dependencies that require native linking (e.g. `react-native-camera` without pre-installation)!
-  - You must never use or refer to any libraries that are not already present in `package.json`! Always check `package.json` before using any library!
-  - Never use any expo libraries or code that requires expo!
+- **Strict Dependency Rule**:
+  - **NO new packages** in `package.json` without explicit approval.
+  - **NO native linking** or Expo libraries.
+  - Only use existing libraries found in `node_modules`.
 
 - **Style Guidelines**:
   - Use 2 spaces for indentation.
@@ -145,25 +172,11 @@ When user wants to release the app, meaning upload the current version of the pr
 - Do not add boilerplate or placeholder code. If valid code requires more information from the user, ask for it before proceeding.
 - Validate all imports you add. Since you cannot easily add new packages, ensure the import exists in `node_modules` (visible via `package.json`).
 
-### Safe area handling for React Native components
-
-- Root-level safe area handling is centralized in `rn/src/index.js`:
-  - Each registered component is, by default, wrapped with a `SafeAreaProvider` and a `SafeAreaView` (with `flex: 1`) via `wrapWithSafeAreaProvider`.
-  - This wrapping can be disabled by calling `registerComponents({ useSafeAreaProvider: false })` (for example, in the React Native Web root where there is already a `SafeAreaProvider`).
-- When creating or modifying **root-level** React Native components (screens/widgets that are registered in `rn/src/index.js`):
-  - Do **not** add another `SafeAreaProvider` or `SafeAreaView` around the component unless explicitly requested.
-  - Use normal layout containers (e.g., `View` with `flex: 1`) as the component’s top-level wrapper.
-- When a nested safe area is genuinely required (for example a scrollable sub-section that must respect insets independently):
-  - Import `SafeAreaView` from `'react-native-safe-area-context'` and use it *inside* the component where needed.
-  - Never use `SafeAreaView` from `'react-native'`.
-- Do not add additional `SafeAreaProvider` instances inside individual components. Assume that the provider is configured at the root level via `index.js`.
-- `index.js` adds `ScrollView` to all registered components by default.
-- To disable automatic internal `ScrollView`, the component file can export:
-```js
-export const rootOptions = {
-  disableScrollView: true,
-}
-``` 
+### Safe Area & Layout
+- **Root Components**: Registered in `index.js` are automatically wrapped in `SafeAreaProvider` + `ScrollView`.
+  - Disable scroll: `export const rootOptions = { disableScrollView: true }`.
+  - Do NOT add `SafeAreaProvider` or `SafeAreaView` at the root level.
+- **Nested Components**: Use `SafeAreaView` from `react-native-safe-area-context` only if specifically needed for inner content.
 
 ### Image Handling
 
@@ -187,93 +200,7 @@ Use `react-native-vector-icons` for predefined icons and icon libraries. Do not 
 Always use `@shopify/flash-list` instead of FlatList for listing components.
 Remember to disable the internal ScrollView of the root component if you want to use FlashList as the main scrollable area. (this fixes infinite pagination issues)
 
-### Data Persistence (react-native-mmkv)
-
-Always and only use react-native-mmkv for data persistence.
-It also works with react-native-web.
-
-### Web Requests
-Always use the standard `fetch` API for web requests.
-Only on web platform, always route API requests through cloudflare CORS proxy (https://test.cors.workers.dev) and set `Origin` and `Referer` headers to the target domain to avoid CORS issues:
-```js
-fetch('https://test.cors.workers.dev/?https://httpbin.org/post', {
-  method: 'post',
-  headers: {
-    'x-foo': 'bar',
-    'x-bar': 'foo',
-    'x-cors-headers': JSON.stringify({
-      // allows to send forbidden headers
-      // https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
-      'Origin': 'https://httpbin.org',
-      'Referer': 'https://httpbin.org/',
-    }) 
-  }
-}).then(res => {
-  // allows to read all headers (even forbidden headers like set-cookies)
-  const headers = JSON.parse(res.headers.get('cors-received-headers'))
-  console.log(headers)
-  return res.json()
-}).then(console.log)
-```
-
-#### Usage
-
-##### Create a new instance
-
-To create a new instance of the MMKV storage, use the `MMKV` constructor. It is recommended that you re-use this instance throughout your entire app instead of creating a new instance each time, so `export` the `storage` object.
-```js
-import { createMMKV } from 'react-native-mmkv'
-export const storage = createMMKV()
-```
-This creates a new storage instance using the default MMKV storage ID (`mmkv.default`).
-
-##### Set
-
-```js
-storage.set('user.name', 'Marc')
-storage.set('user.age', 21)
-storage.set('is-mmkv-fast-asf', true)
-```
-
-##### Get
-
-```js
-const username = storage.getString('user.name') // 'Marc'
-const age = storage.getNumber('user.age') // 21
-const isMmkvFastAsf = storage.getBoolean('is-mmkv-fast-asf') // true
-```
-
-##### Hooks
-
-```js
-const [username, setUsername] = useMMKVString('user.name')
-const [age, setAge] = useMMKVNumber('user.age')
-const [isMmkvFastAsf, setIsMmkvFastAf] = useMMKVBoolean('is-mmkv-fast-asf')
-```
-
-##### Keys
-
-```js
-// checking if a specific key exists
-const hasUsername = storage.contains('user.name')
-// getting all keys
-const keys = storage.getAllKeys() // ['user.name', 'user.age', 'is-mmkv-fast-asf']
-// delete a specific key + value
-const wasRemoved = storage.remove('user.name')
-// delete all keys
-storage.clearAll()
-```
-
-##### Objects
-
-```js
-const user = {
-  username: 'Marc',
-  age: 21
-}
-// Serialize the object into a JSON string
-storage.set('user', JSON.stringify(user))
-// Deserialize the JSON string into an object
-const jsonUser = storage.getString('user') // { 'username': 'Marc', 'age': 21 }
-const userObject = JSON.parse(jsonUser)
-```
+### Data Persistence & Web Requests
+- **Persistence**: strict use of `react-native-mmkv` (works on Web). Export a shared `storage` instance.
+- **Web Requests**: Use standard `fetch`.
+- **CORS (Web Only)**: Route API requests through `https://test.cors.workers.dev/?<target_url>` to avoid CORS errors. Set `Origin` and `Referer` headers to the target domain.
