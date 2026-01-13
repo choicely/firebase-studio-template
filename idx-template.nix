@@ -23,7 +23,6 @@
     repo_tgz="$tmpdir/repo.tgz"
     mods_tgz="$tmpdir/node_modules.tgz"
 
-    # Kick off both downloads in parallel
     curl -fL --retry 3 --retry-delay 1 --compressed \
       "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
       -o "$repo_tgz" &
