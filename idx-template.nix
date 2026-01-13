@@ -5,7 +5,6 @@
       pkgs.gzip
       pkgs.gnutar
       pkgs.jq
-      pkgs.nodejs_20
       pkgs.rsync
   ];
   bootstrap = ''
@@ -54,7 +53,5 @@
     # Install npm dependencies
     curl -sSL "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.8-alpha/node_modules-linux-x86_64-node20.tar.gz" \
       | tar -xzf - --keep-old-files >/dev/null 2>&1 || true
-    npm i --no-audit --no-fund --progress=false
   '';
-  # Faster setup: npm build
 }
