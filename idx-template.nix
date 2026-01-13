@@ -4,6 +4,7 @@
       pkgs.curl
       pkgs.gzip
       pkgs.gnutar
+      pkgs.jq
       pkgs.nodejs_20
       pkgs.rsync
   ];
@@ -39,6 +40,12 @@
     printf '%s="%s"\n' "CHOICELY_APP_NAME" "$WS_NAME" >> default.env
     printf '%s=%s\n' "CHOICELY_APP_KEY" "${app_key}" >> default.env
     printf '%s=%s\n' "CHOICELY_API_KEY" "${api_key}" >> .env
+
+    # Configure MCP settings
+    jq --arg app_key "${app_key}" --arg api_key "${api_key}" \
+      '.mcpServers."choicely-backend-http".headers."X-Choicely-App-Key" = $app_key | .mcpServers."choicely-backend-http".headers.Authorization = "Bearer " + $api_key' \
+      .idx/mcp.json > .idx/mcp.json.tmp && mv .idx/mcp.json.tmp .idx/mcp.json
+
     set -a
     [ -f default.env ] && source default.env
     [ -f .env ] && source .env
