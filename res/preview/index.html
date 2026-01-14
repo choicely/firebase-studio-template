@@ -421,21 +421,32 @@
 <script src="./config.js"></script>
 
 <script>
-    const wak = window.__CHOICELY_APP_KEY__;
+    // 1. Get the App Key safely
+    const getQueryParam = (name) => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    };
+
+    let wak = window.__CHOICELY_APP_KEY__;
+    if (!wak || wak === "__CHOICELY_APP_KEY__") {
+        wak = getQueryParam('appKey') || getQueryParam('wak');
+    }
+
     const iframe = document.getElementById("w");
     const err = document.getElementById("err");
 
+    // 2. Validate Key and Load Widget
     if (!wak || wak === "__CHOICELY_APP_KEY__") {
       err.style.display = "flex";
       iframe.removeAttribute("src");
-      throw new Error("CHOICELY_APP_KEY missing");
+      console.error("Missing App Key. Please check config.js or URL parameters.");
+    } else {
+      // Initial Load
+      iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
     }
-
-    iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
 
     const showQrBtn = document.getElementById("showQr");
     const qrOverlay = document.getElementById("qrOverlay");
-
     const qrImg = document.getElementById("qrImg");
     const qrStatus = document.getElementById("qrStatus");
     const qrStatusText = document.getElementById("qrStatusText");
@@ -453,12 +464,9 @@
 
     const loadQr = () => {
       setLoading("Loading QR…");
-
       const url = "./qr.png?t=" + Date.now();
-
       qrImg.onload = () => showImage();
       qrImg.onerror = () => setLoading("Preparing app download...");
-
       qrImg.src = url;
     };
 
@@ -488,6 +496,105 @@
         closeQr();
       }
     });
+
+    // --- Real-time Updates ---
+    class FetchEventSource {
+      constructor(url, { headers = {} } = {}) {
+        this.url = url;
+        this.headers = headers;
+        this.controller = new AbortController();
+        this.init();
+      }
+      
+      _safeCallback(name, event) {
+          if (this[name]) this[name](event);
+      }
+
+      async init() {
+        try {
+          const response = await fetch(this.url, {
+            headers: this.headers,
+            signal: this.controller.signal
+          });
+          
+          if (!response.ok) {
+             console.warn(`[Preview] Connection failed: ${response.status}`);
+             return;
+          }
+          
+          this._safeCallback('onopen');
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (let line of lines) {
+              if (line.trim().startsWith('data:')) {
+                const dataStr = line.trim().slice(5).trimStart();
+                try {
+                   const data = JSON.parse(dataStr);
+                   if (data && (data.path || data.data)) {
+                       this._safeCallback('onmessage', { data: JSON.stringify(data) });
+                   }
+                } catch(e) {}
+              }
+            }
+          }
+        } catch (e) { 
+            if (!this.controller.signal.aborted) console.warn("[Preview] Listener error:", e); 
+        }
+      }
+    }
+
+    const startRealtimeListener = (key) => {
+        if (!key || key.includes('__')) return;
+        
+        let project = 'choicely-studio'; 
+        try {
+           const decoded = atob(key);
+           const match = decoded.match(/^([^/]+)/);
+           if (match) project = match[1];
+        } catch(e) {}
+
+        const hostMap = {
+            'choicely-eu': window.__CHOICELY_REALTIME_SERVER_PROD__, 
+            'choicely-studio': window.__CHOICELY_REALTIME_SERVER_PROD__,
+            'choicely-test-eu': window.__CHOICELY_REALTIME_SERVER_TEST__,
+        };
+
+        const host = hostMap[project] || window.__CHOICELY_REALTIME_SERVER_PROD__;
+        const url = `https://${host}/apps/${key}.json`;
+        
+        console.log(`[Preview] Listening for updates on: ${host}`);
+        
+        const eventSource = new FetchEventSource(url, { headers: { Accept: 'text/event-stream' } });
+        
+        eventSource.onmessage = () => {
+            console.log('[Preview] 🔄 Update received. Reloading...');
+            const iframe = document.getElementById("w");
+            if (iframe && iframe.contentWindow) {
+                try {
+                    const urlObj = new URL(iframe.src);
+                    urlObj.searchParams.set('_t', Date.now());
+                    iframe.src = urlObj.toString();
+                } catch(e) {
+                    iframe.contentWindow.location.reload();
+                }
+            }
+        };
+    };
+
+    if (wak && wak !== "__CHOICELY_APP_KEY__") {
+        startRealtimeListener(wak);
+    }
 </script>
 
 </body>
