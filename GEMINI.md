@@ -90,7 +90,9 @@ To ensure the best "Vibe Coding" experience, you must follow this strict interac
 
 4. **Iterate**: If the user suggests changes, update the plan and ask for approval again.
 5. **Implement**: Only after receiving explicit approval (e.g., "Yes", "Go ahead", "Looks good"), proceed to generate the code and apply changes.
-6. **Integrate**: If new component was registered in `index.js`, inform the user that it can be displaying within the app by adding `choicely://special/rn/<component_name>` (`component_name` is the snake_case key in `componentMapping` key-value mapping) navigation to the app's bottom navigation in [Choicely Studio](https://studio.choicely.com).
+6. **Integrate**: If a new component was registered in `index.js`, **ask the user** if they want you to add it to the app's navigation menu.
+   * If they say yes, use `add_web_navigation_link` with `url='choicely://special/rn/<component_name>'` (`component_name` is the snake_case key in `componentMapping` key-value mapping) and `nav_block='menu'` (or the appropriate navigation block).
+   * If they decline or if you cannot add it automatically, provide the URL `choicely://special/rn/<component_name>` for manual addition in [Choicely Studio](https://studio.choicely.com).
 7. **Publish**: If the user requests to upload the current version to production, run the release script.
 
 ## Verification Protocol
