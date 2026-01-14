@@ -28,7 +28,7 @@
       -o "$repo_tgz" &
 
     curl -fL --retry 3 --retry-delay 1 --compressed \
-      "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.8-alpha/node_modules-linux-x86_64-node20.tar.gz" \
+      "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.9-alpha/node_modules-linux-x86_64-node20.tar.gz" \
       -o "$mods_tgz" &
 
     wait
