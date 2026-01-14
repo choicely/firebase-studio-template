@@ -7,27 +7,59 @@ set -euo pipefail
 : "${HOST_TUNNEL_METRO:?Environment variable HOST_TUNNEL_METRO is required}"
 : "${HOST_TUNNEL_WEB:?Environment variable HOST_TUNNEL_WEB is required}"
 
+command -v jq >/dev/null 2>&1 || {
+  echo "ERROR: jq is required but not found on PATH" >&2
+  exit 1
+}
+
 URL="${CHOICELY_API_BASE%/}/apps/${CHOICELY_APP_KEY}/"
 
-read -r -d '' PAYLOAD <<EOF || true
-{
-  "rn_config": {
-    "dev": {
-      "bundle_url_mobile": "${HOST_TUNNEL_METRO}",
-      "bundle_url_web": "${HOST_TUNNEL_WEB}"
-    }
-  },
-  "custom_data": {
-    "bundle_url_mobile": "${HOST_TUNNEL_METRO}",
-    "bundle_url_web": "${HOST_TUNNEL_WEB}"
-  }
-}
-EOF
+auth_header=("Authorization: Bearer ${CHOICELY_API_KEY}")
+
+APP_JSON="$(
+  curl -sS \
+    -X GET "$URL" \
+    -H "Accept: application/json" \
+    -H "${auth_header[@]}" \
+    --fail-with-body
+)"
+
+MERGED_CUSTOM_DATA="$(
+  jq -c \
+    --arg metro "$HOST_TUNNEL_METRO" \
+    --arg web "$HOST_TUNNEL_WEB" \
+    '
+      # Start from existing custom_data if it exists and is an object; otherwise {}
+      (.custom_data // {})
+      | if type == "object" then . else {} end
+      # Merge/overwrite only these keys
+      | . + {
+          bundle_url_mobile: $metro,
+          bundle_url_web: $web
+        }
+    ' <<<"$APP_JSON"
+)"
+
+PATCH_PAYLOAD="$(
+  jq -c \
+    --arg metro "$HOST_TUNNEL_METRO" \
+    --arg web "$HOST_TUNNEL_WEB" \
+    --argjson custom_data "$MERGED_CUSTOM_DATA" \
+    '{
+      rn_config: {
+        dev: {
+          bundle_url_mobile: $metro,
+          bundle_url_web: $web
+        }
+      },
+      custom_data: $custom_data
+    }' <<<"{}"
+)"
 
 curl -sS \
   -X PATCH "$URL" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ${CHOICELY_API_KEY}" \
+  -H "${auth_header[@]}" \
   --fail-with-body \
-  -d "$PAYLOAD" \
+  -d "$PATCH_PAYLOAD" \
   >/dev/null
