@@ -181,6 +181,7 @@ import { SvgUri } from 'react-native-svg'
 />
 ```
 Use `react-native-vector-icons` for predefined icons and icon libraries. Do not use nor install any other icon libraries.
+You can search available icons by listing the available icon packs `ls node_modules/react-native-vector-icons/glyphmaps/` and then indexing its icons `cat node_modules/react-native-vector-icons/glyphmaps/<icon_pack_name>.json`
 
 ### Listing
 
