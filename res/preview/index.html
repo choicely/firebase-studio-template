@@ -557,37 +557,22 @@
     const startRealtimeListener = (key) => {
         if (!key || key.includes('__')) return;
         
-        let project = 'choicely-studio'; 
-        try {
-           const decoded = atob(key);
-           const match = decoded.match(/^([^/]+)/);
-           if (match) project = match[1];
-        } catch(e) {}
-
-        const hostMap = {
-            'choicely-eu': window.__CHOICELY_REALTIME_SERVER_PROD__, 
-            'choicely-studio': window.__CHOICELY_REALTIME_SERVER_PROD__,
-            'choicely-test-eu': window.__CHOICELY_REALTIME_SERVER_TEST__,
-        };
-
-        const host = hostMap[project] || window.__CHOICELY_REALTIME_SERVER_PROD__;
-        const url = `https://${host}/apps/${key}.json`;
+        const host = window.__CHOICELY_REALTIME_SERVER__;
+        if (!host) {
+            console.error('[Preview] CHOICELY_REALTIME_SERVER is not configured');
+            return;
+        }
         
-        console.log(`[Preview] Listening for updates on: ${host}`);
+        const url = `https://${host}/apps/${key}.json`;
         
         const eventSource = new FetchEventSource(url, { headers: { Accept: 'text/event-stream' } });
         
         eventSource.onmessage = () => {
-            console.log('[Preview] 🔄 Update received. Reloading...');
             const iframe = document.getElementById("w");
-            if (iframe && iframe.contentWindow) {
-                try {
-                    const urlObj = new URL(iframe.src);
-                    urlObj.searchParams.set('_t', Date.now());
-                    iframe.src = urlObj.toString();
-                } catch(e) {
-                    iframe.contentWindow.location.reload();
-                }
+            if (iframe) {
+                const urlObj = new URL(iframe.src);
+                urlObj.searchParams.set('_t', Date.now());
+                iframe.src = urlObj.toString();
             }
         };
     };
