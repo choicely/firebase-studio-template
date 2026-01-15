@@ -52,6 +52,9 @@
 
     chmod -R a+x scripts
 
+    # Ensure newline before appending
+    echo "" >> default.env
+    
     printf '%s="%s"\n' "CHOICELY_APP_NAME" "$WS_NAME" >> default.env
     printf '%s=%s\n' "CHOICELY_APP_KEY" "${app_key}" >> default.env
     printf '%s=%s\n' "CHOICELY_API_KEY" "${api_key}" >> .env
