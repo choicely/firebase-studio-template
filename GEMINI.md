@@ -8,6 +8,7 @@ Setup: RN components are embedded in a native Choicely host app (host already pr
 - For new opened screens, do not implement back buttons or closing buttons (e.g., "x").
 - Do not implement bottom navigation; prefer view pagers or tabs inside RN components.
 Code: `/rn/src` is your playground (`/rn/src/index.js` entry; keep `AppRegistry.registerComponent` keys in sync with native app keys; `/rn/src/components` for RN components).
+Examples: `/rn/src/components` may contain example/reference components; use them as examples, but do not offer to edit/replace them.
 Limits: `android/`, `web/`, `scripts/` are excluded via `.aiexclude`; do not modify native code/build scripts/web harnesses. If asked for native changes (e.g. "edit AndroidManifest"), explain it’s not possible here.
 Choicely mobile SDK docs: https://docs.choicely.com via MCP Server. More project related information can be found in `README.md` at the project root.
 
