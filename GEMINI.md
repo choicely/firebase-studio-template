@@ -30,7 +30,7 @@ For any code creation or significant modification:
 5) Implement only after explicit approval (“Yes” / “Go ahead” / “Looks good”).
 6) Verify & debug: run Verification Protocol; fix issues until it passes. If this is a Release/Publish/Upload/Deploy request, follow the Release Protocol instead (Verification Protocol is not applicable there).
 7) Publish/Release: if user requests production upload, run release script; when applicable, do this after successful verification.
-8) Integrate: if a new component was registered in `index.js`, ask about adding it to navigation only after verification passes and any requested release has run; if yes, use `add_web_navigation_link` with `url='choicely://special/rn/<component_name>'` (snake_case `componentMapping` key) and `nav_block='menu'` (or appropriate); if no/can’t add, provide `choicely://special/rn/<component_name>` for manual addition in [Choicely Studio](https://studio.choicely.com).
+8) Integrate: if a new component was registered in `index.js`, ask about adding it to navigation only after verification passes and any requested release has run; if yes, use `add_web_navigation_link` with `url='choicely://special/rn/<component_name>'` (snake_case `componentMapping` key) and `nav_block='bottom_nav'` by default (use `nav_block='menu'` if requested/appropriate); if no/can’t add, provide `choicely://special/rn/<component_name>` for manual addition in [Choicely Studio](https://studio.choicely.com).
 
 ## Verification Protocol
 Before asking the user to test, you MUST verify web compilation (primary preview method). Not applicable for Release/Publish/Upload/Deploy.
