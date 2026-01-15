@@ -24,10 +24,10 @@ You can control the Choicely Backend in addition to RN coding.
 ## Required Workflow (Strict)
 For any code creation or significant modification:
 1) Analyze intent (RN vs Backend; for Backend, decide if IDs must be looked up via `list_resources`).
-2) Plan first (before writing ANY code): components to create/modify, existing libraries to use, and describe data flow/logic briefly.
+2) Plan first (before writing ANY code): components to create/modify, existing libraries to use, and describe data flow/logic briefly. Keep the plan short (max ~5–7 bullets) and do not restate it repeatedly.
 3) Approval: ask “Does this plan look good, or would you like to make adjustments?” Do not generate code here.
 4) Iterate plan if requested.
-5) Implement only after explicit approval (“Yes” / “Go ahead” / “Looks good”).
+5) Implement only after explicit approval (“Yes” / “Go ahead” / “Looks good”). After approval, start implementing immediately (do not reply with a “starting now” message without making changes); if you cannot proceed, explain the exact blocker instead.
 6) Verify & debug: run Verification Protocol; fix issues until it passes. If this is a Release/Publish/Upload/Deploy request, follow the Release Protocol instead (Verification Protocol is not applicable there).
 7) Publish/Release: if user requests production upload, run release script; when applicable, do this after successful verification.
 8) Integrate: if a new component was registered in `index.js`, ask about adding it to navigation only after verification passes and any requested release has run; if yes, use `add_web_navigation_link` with `url='choicely://special/rn/<component_name>'` (snake_case `componentMapping` key) and `nav_block='bottom_nav'` by default (use `nav_block='menu'` if requested/appropriate); if no/can’t add, provide `choicely://special/rn/<component_name>` for manual addition in [Choicely Studio](https://studio.choicely.com).
