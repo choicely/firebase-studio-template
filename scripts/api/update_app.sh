@@ -6,6 +6,7 @@ set -euo pipefail
 : "${CHOICELY_API_KEY:?Environment variable CHOICELY_API_KEY is required}"
 : "${HOST_TUNNEL_METRO:?Environment variable HOST_TUNNEL_METRO is required}"
 : "${HOST_TUNNEL_WEB:?Environment variable HOST_TUNNEL_WEB is required}"
+: "${WORKSPACE_SLUG:?Environment variable WORKSPACE_SLUG is required}"
 
 command -v jq >/dev/null 2>&1 || {
   echo "ERROR: jq is required but not found on PATH" >&2
@@ -28,6 +29,7 @@ MERGED_CUSTOM_DATA="$(
   jq -c \
     --arg metro "$HOST_TUNNEL_METRO" \
     --arg web "$HOST_TUNNEL_WEB" \
+    --arg workspace "$WORKSPACE_SLUG" \
     '
       # Start from existing custom_data if it exists and is an object; otherwise {}
       (.custom_data // {})
@@ -35,7 +37,8 @@ MERGED_CUSTOM_DATA="$(
       # Merge/overwrite only these keys
       | . + {
           bundle_url_mobile: $metro,
-          bundle_url_web: $web
+          bundle_url_web: $web,
+          firebase_studio_workspace: $workspace
         }
     ' <<<"$APP_JSON"
 )"
