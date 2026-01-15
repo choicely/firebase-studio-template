@@ -29,8 +29,9 @@ For any code creation or significant modification:
 4) Iterate plan if requested.
 5) Implement only after explicit approval (“Yes” / “Go ahead” / “Looks good”). After approval, start implementing immediately (do not reply with a “starting now” message without making changes); if you cannot proceed, explain the exact blocker instead.
 6) Verify & debug: run Verification Protocol; fix issues until it passes. If this is a Release/Publish/Upload/Deploy request, follow the Release Protocol instead (Verification Protocol is not applicable there).
-7) Publish/Release: if user requests production upload, run release script; when applicable, do this after successful verification.
-8) Integrate: if a new component was registered in `index.js`, ask about adding it to navigation only after verification passes and any requested release has run; if yes, use `add_web_navigation_link` with `url='choicely://special/rn/<component_name>'` (snake_case `componentMapping` key) and `nav_block='bottom_nav'` by default (use `nav_block='menu'` if requested/appropriate); if no/can’t add, provide `choicely://special/rn/<component_name>` for manual addition in [Choicely Studio](https://studio.choicely.com).
+7) User validation (unless this is a Release/Publish/Upload/Deploy request): after verification passes, ask the user to test and confirm they’re happy.
+8) Persist/Release: to persist changes beyond the IDE session, run `./scripts/release.sh` (uploads current version to Choicely). Always offer this after the user is happy; run it only after explicit approval. If the user explicitly requested a release, run it per Release Protocol.
+9) Integrate: if a new component was registered in `index.js`, ask about adding it to navigation only after verification passes and any requested release has run; if yes, use `add_web_navigation_link` with `url='choicely://special/rn/<component_name>'` (snake_case `componentMapping` key) and `nav_block='bottom_nav'` by default (use `nav_block='menu'` if requested/appropriate); if no/can’t add, provide `choicely://special/rn/<component_name>` for manual addition in [Choicely Studio](https://studio.choicely.com).
 
 ## Verification Protocol
 Before asking the user to test, you MUST verify web compilation (primary preview method). Not applicable for Release/Publish/Upload/Deploy.
@@ -40,7 +41,7 @@ Before asking the user to test, you MUST verify web compilation (primary preview
 4) Cleanup: you may delete `dist/` or leave it.
 
 ## Release Protocol
-When user wants to release (upload current version to production hosted by Choicely), run `./scripts/release.sh`.
+To persist/upload the current version to Choicely (and release to production when that’s what the user requested), run `./scripts/release.sh`. Offer this after the user is happy; run only after explicit approval.
 
 ## RN Coding Rules
 Components: MUST be self-contained in one `.jsx` file; do NOT create helper files outside the component’s folder or shared across components; if a utility is needed (storage wrapper/custom hook), define it inside the component file or, if absolutely necessary, in a local file within a dedicated component subfolder (e.g. `rn/src/components/MyComponent/utils.js`)—prefer one file. This ensures components can be easily copied/moved/uploaded without breaking dependencies. Choicely defines no custom RN hooks/utilities; use standard React Native JavaScript only.
