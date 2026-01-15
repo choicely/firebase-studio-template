@@ -422,10 +422,8 @@
 
 <script>
     // 1. Get the App Key safely
-    const getQueryParam = (name) => {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-    };
+    const queryParams = new URLSearchParams(window.location.search);
+    const getQueryParam = (name) => queryParams.get(name);
 
     const wak =
         window.__CHOICELY_APP_KEY__ && window.__CHOICELY_APP_KEY__ !== "__CHOICELY_APP_KEY__"
@@ -589,12 +587,18 @@
       }
     }
 
+    const isValidHost = (value) => /^[a-z0-9.-]+(:\d+)?$/i.test(value);
+
     const startRealtimeListener = (key) => {
-        if (!key || key.includes('__')) return;
+        if (!key || key === "__CHOICELY_APP_KEY__") return;
         
         const host = window.__CHOICELY_REALTIME_SERVER__;
         if (!host || host === "__CHOICELY_REALTIME_SERVER__") {
             console.error('[Preview] CHOICELY_REALTIME_SERVER is not configured');
+            return;
+        }
+        if (!isValidHost(host)) {
+            console.error('[Preview] CHOICELY_REALTIME_SERVER is invalid:', host);
             return;
         }
         
