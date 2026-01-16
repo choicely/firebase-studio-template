@@ -440,7 +440,7 @@
       console.error("Missing App Key. Please check config.js or URL parameters.");
     } else {
       // Initial Load
-      iframe.src = "https://cdn.choicely.com/vx/widget.html?wak=" + encodeURIComponent(wak);
+      iframe.src = "https://cdn.choicely.com/vx/widget.html?no_cache=true&wak=" + encodeURIComponent(wak);
     }
 
     const showQrBtn = document.getElementById("showQr");
