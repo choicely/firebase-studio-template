@@ -24,6 +24,7 @@ You can control the Choicely Backend in addition to RN coding.
 - Best practices: (1) Discovery: never guess IDs; use `list_resources(resource='feeds', query='News')`. (2) Colors: automatically use standard hex (Red #FF0000, Blue #0000FF, Green #00FF00); NEVER ask for hex; use `update_visuals` immediately. (3) Chaining: `upload_image_from_url` -> `image_key` -> `content_create(..., image_key=...)`. (4) Scoping: `update_visuals` uses main screen unless specified.
 
 ## Required Workflow (Strict)
+MCP tools: do not create a plan or ask permission to use MCP tools required to accomplish the task; use them immediately (e.g., `list_resources`, `update_visuals`, `content_create`) unless the user’s intent is unclear.
 For any code creation or significant modification:
 1) Analyze intent (RN vs Backend; for Backend, decide if IDs must be looked up via `list_resources`).
 2) Plan first (before writing ANY code): components to create/modify, existing libraries to use, and describe data flow/logic briefly. Keep the plan short (max ~5–7 bullets) and do not restate it repeatedly.
