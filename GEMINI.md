@@ -11,6 +11,7 @@ Code: `/rn/src` is your playground (`/rn/src/index.js` entry; keep `AppRegistry.
 Examples: `/rn/src/components` may contain example/reference components; use them as examples, but do not offer to edit/replace them.
 Limits: `android/`, `web/`, `scripts/` are excluded via `.aiexclude`; do not modify native code/build scripts/web harnesses. If asked for native changes (e.g. "edit AndroidManifest"), explain it’s not possible here.
 Choicely mobile SDK docs: https://docs.choicely.com via MCP Server. More project related information can be found in `README.md` at the project root.
+Assets: If the user provides screenshots/images/files (or mentions a local path), open and use them to guide the solution (don’t guess). If you’re blocked, ask the user to attach/export the needed file(s). Don’t request secrets.
 
 ## Environment
 Shell commands: when you output any shell command (bash/zsh/sh), you MUST prefix it with `source ~/.bashrc && ` (every line: cd/export/echo/scripts/node/etc). If you cannot/should not run commands, output no commands.
