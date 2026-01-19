@@ -53,7 +53,8 @@ PATCH_PAYLOAD="$(
         dev: {
           bundle_url_mobile: $metro,
           bundle_url_web: $web
-        }
+        },
+        firebase_studio_workspace: $workspace
       },
       custom_data: $custom_data
     }' <<<"{}"
