@@ -18,9 +18,10 @@ else
 fi
 
 export QR_CODE_PATH=./res/preview/qr.png
-./scripts/create_apk_qr.sh
+./scripts/utils/make_qr.sh "https://studio.choicely.link/?ctype=app&ckey=${NEW_APP_KEY}&link=https%3A%2F%2Fchoicely.com%2F" "$QR_CODE_PATH"
+#./scripts/create_apk_qr.sh
 wait
 
-while :; do
-  sleep 1
-done
+#while :; do
+#  sleep 1
+#done
