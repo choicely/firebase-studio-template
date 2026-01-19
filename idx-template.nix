@@ -24,7 +24,7 @@
     mods_tgz="$tmpdir/node_modules.tgz"
 
     curl -fL --retry 3 --retry-delay 1 --compressed \
-      "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/realtime-updates.tar.gz" \
+      "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
       -o "$repo_tgz" &
 
     curl -fL --retry 3 --retry-delay 1 --compressed \
@@ -40,7 +40,7 @@
     tar -xzf "$repo_tgz" -C "$tmpdir"
 
     rsync -a --ignore-existing \
-      "$tmpdir"/choicely-sdk-demo-react-native-realtime-updates/ \
+      "$tmpdir"/choicely-sdk-demo-react-native-main/ \
       "$out"/
     # Cleanup repo junk
     rm -rf \
