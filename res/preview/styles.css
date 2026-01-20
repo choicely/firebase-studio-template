@@ -142,6 +142,20 @@
       0 0 0 1px rgba(55, 255, 149, .12);
   }
 
+    .btn.is-error {
+      background: #e11d48;
+      border-color: #e11d48;
+      color: #fff;
+    }
+
+    .btn.is-error:hover {
+      filter: brightness(0.95);
+    }
+
+    .btn.is-error:active {
+      transform: translateY(1px);
+    }
+
   .corner-actions {
     position: fixed;
     top: var(--page-pad);

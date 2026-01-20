@@ -265,16 +265,16 @@
       startRealtimeListener(wak);
     }
 
-      // --- Push changes button ---
+  // --- Push changes button ---
   // config.js generates:
-  //   window.__PREVIEW_SERVER_PORT__ = "__PREVIEW_SERVER_PORT__";
+  //   window.__PREVIEW_SERVER__ = "__PREVIEW_SERVER__";   // should be full origin, e.g. "https://xyz.trycloudflare.com"
   //   window.__PREVIEW_TOKEN__ = "__PREVIEW_TOKEN__";
   const pushBtn = document.getElementById("pushChanges");
 
-  const previewPort =
-    window.__PREVIEW_SERVER_PORT__ &&
-    window.__PREVIEW_SERVER_PORT__ !== "__PREVIEW_SERVER_PORT__"
-      ? String(window.__PREVIEW_SERVER_PORT__)
+  const hostTunnel =
+    window.__PREVIEW_SERVER__ &&
+    window.__PREVIEW_SERVER__ !== "__PREVIEW_SERVER__"
+      ? String(window.__PREVIEW_SERVER__)
       : null;
 
   const previewToken =
@@ -284,46 +284,55 @@
       : null;
 
   const getReleaseBase = () => {
-    if (!previewPort) throw new Error("__PREVIEW_SERVER_PORT__ is missing (config.js placeholder or not generated)");
-    if (!/^\d+$/.test(previewPort)) throw new Error("__PREVIEW_SERVER_PORT__ must be numeric");
-    return `http://127.0.0.1:${previewPort}`;
-  };
-
-  const setBtnState = (text, disabled) => {
-    pushBtn.textContent = text;
-    pushBtn.setAttribute("aria-disabled", disabled ? "true" : "false");
-    pushBtn.style.pointerEvents = disabled ? "none" : "auto";
-    pushBtn.style.opacity = disabled ? "0.8" : "1";
-  };
-
-  const pushChanges = async () => {
-    try {
-      setBtnState("Pushing…", true);
-
-      const base = getReleaseBase().replace(/\/+$/, "");
-      const url = `${base}/__release`;
-
-      const headers = { "Content-Type": "application/json" };
-      if (previewToken) headers["X-Preview-Token"] = previewToken;
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ wak: wak || null })
-      });
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`Release failed (${res.status}). ${text}`.trim());
-      }
-
-      setBtnState("Pushed", true);
-      setTimeout(() => setBtnState("Push changes to app", false), 1400);
-    } catch (e) {
-      console.error("[Preview] Push failed:", e);
-      setBtnState("Push failed — retry", false);
+    if (!hostTunnel) {
+      throw new Error("__PREVIEW_SERVER__ is missing (config.js placeholder or not generated)");
     }
+    // normalize: require scheme, strip trailing slashes
+    const base = hostTunnel.trim();
+    if (!/^https?:\/\//i.test(base)) {
+      throw new Error("__PREVIEW_SERVER__ must include scheme, e.g. https://xyz.trycloudflare.com");
+    }
+    return base.replace(/\/+$/, "");
   };
+
+    const setBtnState = (text, disabled, { error = false } = {}) => {
+      pushBtn.textContent = text;
+      pushBtn.setAttribute("aria-disabled", disabled ? "true" : "false");
+      pushBtn.style.pointerEvents = disabled ? "none" : "auto";
+      pushBtn.style.opacity = disabled ? "0.8" : "1";
+
+      // error styling
+      pushBtn.classList.toggle("is-error", error);
+    };
+
+    const pushChanges = async () => {
+      try {
+        // clear any previous error state when trying again
+        setBtnState("Pushing…", true, { error: false });
+
+        const url = `${getReleaseBase()}/__release`;
+
+        const headers = { "Content-Type": "application/json" };
+        if (previewToken) headers["X-Preview-Token"] = previewToken;
+
+        const res = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({})
+        });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          throw new Error(`Release failed (${res.status}). ${text}`.trim());
+        }
+
+        setBtnState("Pushed", true, { error: false });
+        setTimeout(() => setBtnState("Push changes to app", false, { error: false }), 1400);
+      } catch (e) {
+        console.error("[Preview] Push failed:", e);
+        setBtnState("Push failed — retry", false, { error: true });
+      }
+    };
 
   pushBtn.addEventListener("click", (e) => {
     e.preventDefault();

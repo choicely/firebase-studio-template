@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import fs from 'node:fs'
 
 import express from 'express'
 import compression from 'compression'
@@ -19,6 +20,27 @@ if (!/^\d+$/.test(String(portArg))) {
   process.exit(1)
 }
 const port = Number(portArg)
+
+const logPath = path.resolve(process.cwd(), 'tmp', 'preview.log')
+
+function ensureLogDir() {
+  fs.mkdirSync(path.dirname(logPath), { recursive: true })
+}
+
+function logLine(msg) {
+  ensureLogDir()
+  const ts = new Date().toISOString()
+  fs.appendFileSync(logPath, `[${ts}] ${msg}\n`, 'utf8')
+}
+
+function safeHeaders(req) {
+  const h = { ...req.headers }
+  // Don’t leak secrets
+  if (h['x-preview-token']) h['x-preview-token'] = '[redacted]'
+  if (h['authorization']) h['authorization'] = '[redacted]'
+  if (h['cookie']) h['cookie'] = '[redacted]'
+  return h
+}
 
 const HOST = '127.0.0.1'
 const app = express()
@@ -43,38 +65,54 @@ function send(res, status, body) {
 }
 
 function requirePreviewToken(req, res, next) {
-  // Let CORS preflight through; browser usually won't include custom headers here.
+  logLine(`REQ ${req.method} ${req.originalUrl} ip=${req.ip} headers=${JSON.stringify(safeHeaders(req))}`)
+
   if (req.method === 'OPTIONS') return next()
 
   const expected = process.env.PREVIEW_TOKEN
   if (!expected) {
+    logLine('ERROR PREVIEW_TOKEN is not set')
     return send(res, 500, 'ERROR: PREVIEW_TOKEN is not set\n')
   }
 
   const got = req.header('x-preview-token')
   if (!got || got !== expected) {
+    logLine('AUTH Unauthorized (token missing or mismatch)')
     return send(res, 401, 'Unauthorized\n')
   }
 
+  logLine('AUTH OK')
   return next()
 }
 
 function runRelease(res) {
   const cmd = 'source ~/.bashrc && ./scripts/release.sh'
+  logLine(`RELEASE start cmd="${cmd}"`)
+
   const child = spawn('bash', ['-lc', cmd], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: process.env,
   })
 
-  let out = ''
-  let err = ''
+  child.stdout.on('data', (d) => {
+    const s = d.toString()
+    logLine(`RELEASE stdout: ${s.replace(/\n$/, '')}`)
+  })
 
-  child.stdout.on('data', (d) => (out += d.toString()))
-  child.stderr.on('data', (d) => (err += d.toString()))
+  child.stderr.on('data', (d) => {
+    const s = d.toString()
+    logLine(`RELEASE stderr: ${s.replace(/\n$/, '')}`)
+  })
 
-  child.on('close', (code) => {
+  child.on('error', (e) => {
+    logLine(`RELEASE spawn error: ${String(e && e.stack ? e.stack : e)}`)
+    send(res, 500, `FAILED (spawn error)\n\n${String(e)}\n`)
+  })
+
+  child.on('close', (code, signal) => {
+    logLine(`RELEASE done code=${code} signal=${signal || ''}`)
     if (code === 0) return send(res, 200, 'OK\n')
-    send(res, 500, `FAILED (exit ${code})\n\n${err || out}\n`)
+    send(res, 500, `FAILED (exit ${code})\n`)
   })
 }
 
@@ -113,5 +151,6 @@ app.use(
 )
 
 app.listen(port, HOST, () => {
+  logLine(`SERVER start root=${root} host=${HOST} port=${port}`)
   console.log(`Serving ${root} at http://${HOST}:${port}`)
 })
