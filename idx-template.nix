@@ -22,7 +22,7 @@
 
     # Pull ONLY node_modules from GitHub release (repo content is already included in this template)
     curl -fL --retry 3 --retry-delay 1 --compressed \
-      "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.9-alpha/node_modules-linux-x86_64-node20.tar.gz" \
+      "https://github.com/choicely/firebase-studio-template/releases/download/v1.0.0-alpha/node_modules-linux-x86_64-node20.tar.gz" \
       -o "$mods_tgz"
 
     # Extract node_modules into workspace (don't fail if some files already exist)
