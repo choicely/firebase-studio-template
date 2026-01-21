@@ -1,17 +1,15 @@
 { pkgs, app_key, api_key, ... }: {
-  # Shell script that produces the final environment
   packages = [
-      pkgs.curl
-      pkgs.gzip
-      pkgs.gnutar
-      pkgs.jq
-      pkgs.rsync
+    pkgs.curl
+    pkgs.gzip
+    pkgs.gnutar
+    pkgs.jq
   ];
+
   bootstrap = ''
     set -eo pipefail
-    # Copy the folder containing the `idx-template` files to the final
-    # project folder for the new workspace. ${./.} inserts the directory
-    # of the checked-out Git folder containing this template.
+
+    # Copy this template into the workspace output directory
     cp -rf ${./.} "$out"
     chmod -R +w "$out"
     rm -rf "$out/.git" "$out/idx-template".{nix,json}
@@ -20,41 +18,21 @@
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
 
-    repo_tgz="$tmpdir/repo.tgz"
     mods_tgz="$tmpdir/node_modules.tgz"
 
-    curl -fL --retry 3 --retry-delay 1 --compressed \
-      "https://github.com/choicely/choicely-sdk-demo-react-native/archive/refs/heads/main.tar.gz" \
-      -o "$repo_tgz" &
-
+    # Pull ONLY node_modules from GitHub release (repo content is already included in this template)
     curl -fL --retry 3 --retry-delay 1 --compressed \
       "https://github.com/choicely/choicely-sdk-demo-react-native/releases/download/v0.0.9-alpha/node_modules-linux-x86_64-node20.tar.gz" \
-      -o "$mods_tgz" &
+      -o "$mods_tgz"
 
-    wait
-
-    # Extract node_modules
+    # Extract node_modules into workspace (don't fail if some files already exist)
     tar -xzf "$mods_tgz" --keep-old-files >/dev/null 2>&1 || true
 
-    # Extract repo
-    tar -xzf "$repo_tgz" -C "$tmpdir"
-
-    rsync -a --ignore-existing \
-      "$tmpdir"/choicely-sdk-demo-react-native-main/ \
-      "$out"/
-    # Cleanup repo junk
-    rm -rf \
-      AGENTS.md \
-      ios android gradle \
-      gradlew gradlew.bat \
-      settings.gradle gradle.properties build.gradle \
-      || true
-
-    chmod -R a+x scripts
+    chmod -R a+x scripts || true
 
     # Ensure newline before appending
     echo "" >> default.env
-    
+
     printf '%s="%s"\n' "CHOICELY_APP_NAME" "$WS_NAME" >> default.env
     printf '%s=%s\n' "CHOICELY_APP_KEY" "${app_key}" >> default.env
     printf '%s=%s\n' "CHOICELY_API_KEY" "${api_key}" >> .env

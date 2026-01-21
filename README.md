@@ -1,4 +1,4 @@
-# Choicely Firebase Studio Template
+# [Choicely Firebase Studio Template](https://github.com/choicely/firebase-studio-template)
 
 ## Getting started
 
@@ -19,7 +19,7 @@
 
 ## Overview
 
-This is a Firebase Studio template for the Choicely SDK — a ready-made starting point to create cross-platform native apps connected to Choicely services. 
+This is a Firebase Studio template for the Choicely Studio platform — a ready-made starting point to create cross-platform native apps connected to Choicely services. 
 It's designed for anyone who want to create a new mobile app quickly.
 
 ## Requirements
@@ -49,7 +49,7 @@ This project is provided under the Elastic License 2.0 (ELv2). See `LICENCE.md` 
 
 ## Support & commercial inquiries
 
-For commercial licensing, enterprise integration, or support, contact: support@choicely.com
+For commercial licensing, enterprise integration, or support, contact: [support@choicely.com](mailto:support@choicely.com)
 
 For terms and privacy information:
 - Terms and Conditions: https://www.choicely.com/terms-and-conditions  

@@ -1,8 +1,8 @@
 {
-  "name": "Choicely SDK",
+  "name": "Choicely",
   "description": "Create cross-platform native apps.",
   "categories": ["Mobile"],
-  "publisher": "Choicely",
+  "publisher": "https://www.choicely.com",
   "icon": "https://raw.githubusercontent.com/choicely/firebase-studio-template/refs/heads/main/.idx/icon.png",
   "params": [
     {
