@@ -4,7 +4,6 @@ set -euo pipefail
 : "${CHOICELY_API_BASE:?Environment variable CHOICELY_API_BASE is required}"
 : "${CHOICELY_APP_KEY:?Environment variable CHOICELY_APP_KEY is required}"
 : "${CHOICELY_API_KEY:?Environment variable CHOICELY_API_KEY is required}"
-: "${HOST_TUNNEL_METRO:?Environment variable HOST_TUNNEL_METRO is required}"
 : "${HOST_TUNNEL_WEB:?Environment variable HOST_TUNNEL_WEB is required}"
 : "${WORKSPACE_SLUG:?Environment variable WORKSPACE_SLUG is required}"
 
@@ -27,7 +26,6 @@ APP_JSON="$(
 
 MERGED_CUSTOM_DATA="$(
   jq -c \
-    --arg metro "$HOST_TUNNEL_METRO" \
     --arg web "$HOST_TUNNEL_WEB" \
     --arg workspace "$WORKSPACE_SLUG" \
     '
@@ -36,7 +34,6 @@ MERGED_CUSTOM_DATA="$(
       | if type == "object" then . else {} end
       # Merge/overwrite only these keys
       | . + {
-          bundle_url_mobile: $metro,
           bundle_url_web: $web,
           firebase_studio_workspace: $workspace
         }
@@ -45,14 +42,12 @@ MERGED_CUSTOM_DATA="$(
 
 PATCH_PAYLOAD="$(
   jq -c \
-    --arg metro "$HOST_TUNNEL_METRO" \
     --arg web "$HOST_TUNNEL_WEB" \
     --arg workspace "$WORKSPACE_SLUG" \
     --argjson custom_data "$MERGED_CUSTOM_DATA" \
     '{
       rn_config: {
         dev: {
-          bundle_url_mobile: $metro,
           bundle_url_web: $web
         },
         firebase_studio_workspace: $workspace

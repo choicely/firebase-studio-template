@@ -11,6 +11,12 @@ const rnRoot = path.resolve(repoRoot, 'rn')
 const {getPorts} = require('./dev/ports')
 const {metroPort} = getPorts(repoRoot)
 
+if (metroPort === null) {
+  throw new Error(
+    'RCT_METRO_PORT is not set. Define it in `.env`, `default.env`, or export it.',
+  )
+}
+
 const defaultConfig = getDefaultConfig(rnRoot)
 
 module.exports = mergeConfig(defaultConfig, {

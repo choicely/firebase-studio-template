@@ -16,17 +16,28 @@ function parsePort(name, {min = 1, max = 65535} = {}) {
   const raw = requireEnv(name)
   const num = Number(raw)
   if (!assertPortRange(num, min, max)) {
-    throw new Error(
-      `${name} invalid: "${raw}". Must be an integer between ${min} and ${max}.`,
-    )
+    throw new Error(`${name} invalid: "${raw}". Must be an integer between ${min} and ${max}.`)
+  }
+  return num
+}
+
+function parseOptionalPort(name, {min = 1, max = 65535} = {}) {
+  const raw = process.env[name]
+  if (raw === undefined || raw === '') return null
+
+  const num = Number(raw)
+  if (!assertPortRange(num, min, max)) {
+    throw new Error(`${name} invalid: "${raw}". Must be an integer between ${min} and ${max}.`)
   }
   return num
 }
 
 function getPorts(rootDir) {
   loadEnv(rootDir)
-  const metroPort = parsePort('RCT_METRO_PORT')
-  const webPort = parsePort('WEB_PORT')
+
+  const metroPort = parseOptionalPort('RCT_METRO_PORT') // number | null
+  const webPort = parsePort('WEB_PORT')                 // number (required)
+
   return {metroPort, webPort}
 }
 
