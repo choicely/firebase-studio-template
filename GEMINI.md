@@ -49,16 +49,6 @@ Only when the user explicitly asks to release to production, run `./scripts/rele
 ## RN Coding Rules
 Components: MUST be self-contained in one `.jsx` file; do NOT create helper files outside the component’s folder or shared across components; if a utility is needed (storage wrapper/custom hook), define it inside the component file or, if absolutely necessary, in a local file within a dedicated component subfolder (e.g. `rn/src/components/MyComponent/utils.js`)—prefer one file. This ensures components can be easily copied/moved/uploaded without breaking dependencies. Choicely defines no custom RN hooks/utilities; use standard React Native JavaScript only.
 Dependencies: NO new packages in `package.json` without explicit approval; NO native linking or Expo; use existing `node_modules` only.
-
-## 3D / three.js (Strict Parity)
-If the user asks for 3D scenes and requires parity across **web + iOS + Android**:
-- Implement three.js as **web content** everywhere: `iframe` on web and `react-native-webview` on iOS/Android.
-- Do **not** attempt native WebGL bindings or WebGPU-only rendering; use three.js **WebGL** (`WebGLRenderer`) as the baseline.
-- Prefer a single shared HTML+JS scene (string/template) hosted by the RN component, and use a JSON message bridge:
-  - Host -> scene: `cmd/*` (e.g. `cmd/setConfig`, `cmd/resetCamera`)
-  - Scene -> host: `event/*` (e.g. `event/ready`, `event/pick`, `event/error`)
-- Avoid adding npm deps for three.js unless explicitly approved; prefer a **pinned CDN URL** inside the HTML for quick prototypes.
-- Mixing native UI + 3D is done via **overlay** (native controls on top of WebView/iframe) and **message passing**; hit testing is not unified across layers.
 Style/layout: 2 spaces; strict equality (`===`/`!==`); prefer `StyleSheet.create`; JavaScript only (no TypeScript, no type annotations/interfaces); never hardcode dimensions as globals; be responsive; must work on web via `react-native-web`.
 Integrity: do not rename `AppRegistry.registerComponent` keys (must match Choicely Studio config).
 Props: all props are strings; destructure at signature with defaults (e.g. `function MyWidget({title = 'Default Title'})`); document expected values in the component; parse strings into booleans/numbers if needed; deep links `choicely://special/rn/<component_name>?prop1=value1&prop2=value2` become string props by copying query params into props; expose reusable knobs (titles/colors/sizes/toggles) with meaningful defaults.
