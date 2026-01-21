@@ -47,6 +47,7 @@ PATCH_PAYLOAD="$(
   jq -c \
     --arg metro "$HOST_TUNNEL_METRO" \
     --arg web "$HOST_TUNNEL_WEB" \
+    --arg workspace "$WORKSPACE_SLUG" \
     --argjson custom_data "$MERGED_CUSTOM_DATA" \
     '{
       rn_config: {

@@ -66,7 +66,7 @@
       # Runs when a workspace restarted
       onStart = {
         choicely-config-update = ''
-          ./scripts/update_metro_host.sh
+          ./scripts/update_env.sh
         '';
         mobile-rn = ''
           set -eo pipefail
@@ -90,7 +90,7 @@
           command = [
             "bash"
             "-lc"
-            "source \"$HOME/.bashrc\" && npm run preview -- --port \"$PORT\""
+            "source \"$HOME/.bashrc\" && npm run preview -- \"$PORT\""
           ];
           manager = "web";
         };
