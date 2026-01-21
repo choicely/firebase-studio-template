@@ -4,6 +4,7 @@
 # Exclude Dev Scripts and Proxies
 /rn/dev/
 /scripts/
+.watchmanconfig
 
 # Exclude IDE and Project Configs
 .idx/
