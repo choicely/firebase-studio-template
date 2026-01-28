@@ -25,14 +25,25 @@
       # Runs when a workspace is first created with this `dev.nix` file
       onCreate = {
         default.openFiles = [ ];
+        env-setup = ''
+          chmod -R a+x scripts
+          ./scripts/bash_setup.sh
+          exit
+        '';
       };
       # Runs when a workspace restarted
       onStart = {
         choicely-config-update = ''
+          chmod -R a+x scripts
+          ./scripts/bash_setup.sh
+          source "$HOME/.bashrc"
           ./scripts/update_env.sh
         '';
         web-rn = ''
           set -eo pipefail
+          chmod -R a+x scripts
+          ./scripts/bash_setup.sh
+          source "$HOME/.bashrc"
           echo -e "\033[1;33mStarting web development server...\033[0m"
           npm run web
         '';
@@ -46,7 +57,7 @@
           command = [
             "bash"
             "-lc"
-            "source \"$HOME/.bashrc\" && npm run preview -- \"$PORT\""
+            "chmod -R a+x scripts && ./scripts/bash_setup.sh && source \"$HOME/.bashrc\" && npm run preview -- \"$PORT\""
           ];
           manager = "web";
         };
