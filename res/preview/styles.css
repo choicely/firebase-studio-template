@@ -525,3 +525,21 @@ iframe {
   height: 100%;
   border: 0;
 }
+
+/* Components sidebar loading status: readable on white */
+.components-status,
+.components-status #componentsStatusText {
+  color: #000;
+}
+
+/* Optional: if your spinner uses border-color and looks washed out */
+.components-status .spinner {
+  border-color: rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+}
+
+/* If you have an "error" modifier and want it still black (not red/gray) */
+.components-status.is-error,
+.components-status.is-error #componentsStatusText {
+  color: #000;
+}
