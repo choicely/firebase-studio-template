@@ -473,3 +473,55 @@ iframe {
 [hidden] {
     display: none !important;
 }
+
+.sidebar-content {
+  position: relative;
+}
+
+/* Overlay shown while components env.js is not usable */
+.components-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+  font-size: 14px;
+}
+
+/* Hide overlay */
+.components-status.is-hidden {
+  display: none;
+}
+
+/* Optional "error-ish" vibe */
+.components-status.is-error {
+  background: rgba(255, 245, 245, 0.95);
+}
+
+/* If you already have .spinner, you can delete this block */
+.components-status .spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-top-color: rgba(0, 0, 0, 0.75);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Make sure iframe sits below overlay */
+#componentsFrame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

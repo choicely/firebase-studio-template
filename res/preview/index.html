@@ -20,6 +20,11 @@
             <span class="arrow">◀</span>
         </button>
         <div class="sidebar-content">
+            <div id="componentsStatus" class="components-status" aria-live="polite">
+                <span class="spinner" aria-hidden="true"></span>
+                <span id="componentsStatusText">Loading components…</span>
+            </div>
+
             <iframe id="componentsFrame" title="Components"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
                     allow="fullscreen"></iframe>
@@ -82,51 +87,126 @@
       const envUrl = String(window.__PREVIEW_SERVER__).replace(/\/+$/, "") + "/env.js";
       const frame = document.getElementById("componentsFrame");
 
+      const statusEl = document.getElementById("componentsStatus");
+      const statusTextEl = document.getElementById("componentsStatusText");
+
       if (!frame) {
         console.error("[preview] componentsFrame not found");
         return;
       }
 
-      let lastSrc = "";            // last applied iframe src (normalized)
-      let inFlight = false;
-
       const normalize = (s) => String(s || "").trim().replace(/\/+$/, "");
+      const isProbablyUrl = (s) => /^https?:\/\//i.test(s);
+
+      let lastSrc = "";
+      let inFlight = false;
+      let okOnce = false;     // once we have loaded successfully at least once
+      let failStreak = 0;
+
+      const setStatus = (text, { hidden = false, error = false } = {}) => {
+        if (!statusEl || !statusTextEl) return;
+        statusTextEl.textContent = text;
+        statusEl.classList.toggle("is-hidden", hidden);
+        statusEl.classList.toggle("is-error", error);
+      };
+
+      let loadWatchdog = null;
+
+      const startFrameLoading = (label = "Loading components…") => {
+        setStatus(label, { hidden: false, error: false });
+
+        if (loadWatchdog) clearTimeout(loadWatchdog);
+        loadWatchdog = setTimeout(() => {
+          setStatus("Loading components… (still connecting)", { hidden: false, error: true });
+        }, 12000);
+      };
+
+      const finishFrameLoading = () => {
+        if (loadWatchdog) {
+          clearTimeout(loadWatchdog);
+          loadWatchdog = null;
+        }
+        setStatus("Loading components…", { hidden: true });
+      };
+
+      // Attach once
+      frame.addEventListener("load", () => {
+        okOnce = true;
+        failStreak = 0;
+        finishFrameLoading();
+      });
+
+      frame.addEventListener("error", () => {
+        // Not guaranteed to fire for cross-origin iframes, but helpful when it does.
+        setStatus("Loading components… (iframe failed)", { hidden: false, error: true });
+      });
 
       const applyIfChanged = (next) => {
         const src = normalize(next);
-        if (!src) return;          // ignore empty
-        if (src === lastSrc) return; // ignore same as before
+        if (!src) return false;
+        if (!isProbablyUrl(src)) return false;
+        if (src === lastSrc) return true;
+
         lastSrc = src;
+
+        // show spinner while iframe navigates
+        startFrameLoading("Loading components…");
+
         frame.src = src;
+        return true;
       };
 
       const fetchEnv = async () => {
         if (inFlight) return;
         inFlight = true;
+
+        // If we’ve never succeeded, always show loader.
+        // If we HAVE succeeded before, only show loader again after a couple fails (prevents flicker).
+        if (!okOnce) setStatus("Loading components…");
+        else if (failStreak >= 2) setStatus("Reconnecting components…", { error: true });
+
         try {
-          // cache-bust so tunnels/CDNs don’t serve stale env.js
           const res = await fetch(envUrl + "?t=" + Date.now(), { cache: "no-store" });
           if (!res.ok) {
-            // don’t spam console every time; comment out if you want silence
-            console.warn("[preview] env.js fetch failed:", res.status);
+            failStreak += 1;
+            if (!okOnce) setStatus("Loading components… (env not ready)", { error: false });
             return;
           }
 
           const js = await res.text();
 
-          // Execute env.js in the main page context so it sets window.__COMPONENTS_SERVER__
-          // (This avoids CORS/script-tag issues and lets us poll via fetch.)
-          (0, eval)(js);
+          // Execute env.js in main context so it can set window.__COMPONENTS_SERVER__
+          try {
+            (0, eval)(js);
+          } catch (e) {
+            failStreak += 1;
+            if (!okOnce) setStatus("Loading components… (bad env.js)", { error: true });
+            return;
+          }
 
-          applyIfChanged(window.__COMPONENTS_SERVER__);
+          const applied = applyIfChanged(window.__COMPONENTS_SERVER__);
+          if (!applied) {
+            failStreak += 1;
+            if (!okOnce) {
+              setStatus("Loading components… (waiting for __COMPONENTS_SERVER__)", { error: false });
+            }
+            return;
+          }
+
+          // Success 🎉
+          okOnce = true;
+          failStreak = 0;
+          // don't hide here — iframe 'load' will hide it
         } catch (e) {
-          console.warn("[preview] env.js fetch error:", e);
+          failStreak += 1;
+          if (!okOnce) setStatus("Loading components… (network)", { error: false });
         } finally {
           inFlight = false;
         }
       };
 
-      // initial + poll every 5s
+      // start visible until success
+      setStatus("Loading components…");
       fetchEnv();
       setInterval(fetchEnv, 5000);
     })();
