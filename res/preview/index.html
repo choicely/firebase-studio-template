@@ -27,7 +27,7 @@
 
             <iframe id="componentsFrame" title="Components"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                    allow="fullscreen"></iframe>
+                    allow="fullscreen; clipboard-write; clipboard-read;"></iframe>
         </div>
     </div>
 
@@ -53,7 +53,7 @@
                 </div>
                 <iframe id="w" title="Choicely Widget"
                         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                        allow="fullscreen"></iframe>
+                        allow="fullscreen; clipboard-write; clipboard-read;"></iframe>
             </div>
         </div>
     </div>
@@ -184,7 +184,7 @@
             return;
           }
 
-          const applied = applyIfChanged(window.__COMPONENTS_SERVER__);
+          const applied = applyIfChanged(window.__COMPONENTS_SERVER__ + "?_gallery_mode=preview_list");
           if (!applied) {
             failStreak += 1;
             if (!okOnce) {
