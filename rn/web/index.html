@@ -30,6 +30,16 @@
 
 <body>
 <div id="root"></div>
+<script>
+    (function () {
+      try {
+        window.parent && window.parent.postMessage(
+          { type: "CHOICELY_COMPONENTS_READY", ts: Date.now() },
+          "*"
+        );
+      } catch (e) {}
+    })();
+</script>
 </body>
 
 </html>
