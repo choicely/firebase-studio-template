@@ -84,6 +84,10 @@
     (function () {
       if (!window.__PREVIEW_SERVER__) throw new Error("__PREVIEW_SERVER__ missing");
 
+      const POLL_MS = 5000;
+      const READY_TIMEOUT_MS = 12000;     // time to wait for postMessage READY
+      const RETRY_BACKOFF_MAX_MS = 12000;
+
       const envUrl = String(window.__PREVIEW_SERVER__).replace(/\/+$/, "") + "/env.js";
       const frame = document.getElementById("componentsFrame");
 
@@ -98,10 +102,20 @@
       const normalize = (s) => String(s || "").trim().replace(/\/+$/, "");
       const isProbablyUrl = (s) => /^https?:\/\//i.test(s);
 
-      let lastSrc = "";
       let inFlight = false;
-      let okOnce = false;     // once we have loaded successfully at least once
+
+      // Last known good base for the iframe (includes _gallery_mode, but not _t cachebuster)
+      let lastUrlNoBust = "";
+      let lastOrigin = "";         // expected origin for READY messages
+
+      let okOnce = false;
       let failStreak = 0;
+      let retryTimer = null;
+
+      // For each navigation attempt
+      let navId = 0;
+      let readyTimer = null;
+      let gotReadyForNav = false;
 
       const setStatus = (text, { hidden = false, error = false } = {}) => {
         if (!statusEl || !statusTextEl) return;
@@ -110,105 +124,171 @@
         statusEl.classList.toggle("is-error", error);
       };
 
-      let loadWatchdog = null;
-
-      const startFrameLoading = (label = "Loading components…") => {
-        setStatus(label, { hidden: false, error: false });
-
-        if (loadWatchdog) clearTimeout(loadWatchdog);
-        loadWatchdog = setTimeout(() => {
-          setStatus("Loading components… (still connecting)", { hidden: false, error: true });
-        }, 12000);
-      };
-
-      const finishFrameLoading = () => {
-        if (loadWatchdog) {
-          clearTimeout(loadWatchdog);
-          loadWatchdog = null;
+      const clearReadyTimer = () => {
+        if (readyTimer) {
+          clearTimeout(readyTimer);
+          readyTimer = null;
         }
-        setStatus("Loading components…", { hidden: true });
       };
 
-      // Attach once
-      frame.addEventListener("load", () => {
+      const scheduleRetry = (fn) => {
+        if (retryTimer) return;
+        const delay = Math.min(1000 * (2 ** Math.min(failStreak, 4)), RETRY_BACKOFF_MAX_MS);
+        retryTimer = setTimeout(() => {
+          retryTimer = null;
+          fn();
+        }, delay);
+      };
+
+      const withCacheBust = (url) => {
+        const sep = url.includes("?") ? "&" : "?";
+        return url + sep + "_t=" + Date.now();
+      };
+
+      const forceReload = () => {
+        if (!lastUrlNoBust) return;
+
+        // Mark as not-ready and show status
+        gotReadyForNav = false;
+        setStatus("Components failed to boot — retrying…", { hidden: false, error: true });
+
+        // Blank hop helps some browsers actually re-navigate
+        try { frame.src = "about:blank"; } catch (e) {}
+
+        setTimeout(() => {
+          // Force a real reload even if URL is the same
+          navigate(lastUrlNoBust, { force: true, label: "Reconnecting components…" });
+
+          // Also pull env.js immediately in case the tunnel rotated
+          fetchEnv();
+        }, 50);
+      };
+
+      const startReadyWatchdog = (thisNavId) => {
+        clearReadyTimer();
+        readyTimer = setTimeout(() => {
+          // Only act if this is still the current nav
+          if (thisNavId !== navId) return;
+          if (gotReadyForNav) return;
+
+          failStreak += 1;
+          forceReload();
+          scheduleRetry(forceReload);
+        }, READY_TIMEOUT_MS);
+      };
+
+      const navigate = (urlNoBust, { force = false, label = "Loading components…" } = {}) => {
+        const normalized = normalize(urlNoBust);
+        if (!normalized || !isProbablyUrl(normalized)) return false;
+
+        if (!force && normalized === lastUrlNoBust) return true;
+        lastUrlNoBust = normalized;
+
+        // Update expected origin for READY messages
+        try {
+          lastOrigin = new URL(normalized).origin;
+        } catch (e) {
+          lastOrigin = "";
+        }
+
+        // UI
+        setStatus(label, { hidden: false, error: okOnce });
+
+        // New navigation attempt
+        navId += 1;
+        gotReadyForNav = false;
+
+        // Navigate with cachebuster
+        frame.src = withCacheBust(normalized);
+
+        // Start watchdog: if READY doesn’t arrive, we treat it as broken (502/5xx included)
+        startReadyWatchdog(navId);
+
+        return true;
+      };
+
+      // 🔥 The actual success signal: READY message from inside the iframe
+      window.addEventListener("message", (event) => {
+        const data = event && event.data;
+
+        if (!data || data.type !== "CHOICELY_COMPONENTS_READY") return;
+
+        // If we know the expected origin, enforce it.
+        // (If you use multiple origins/tunnels, this keeps it sane.)
+        if (lastOrigin && event.origin !== lastOrigin) return;
+
+        gotReadyForNav = true;
         okOnce = true;
         failStreak = 0;
-        finishFrameLoading();
+
+        clearReadyTimer();
+        setStatus("Loading components…", { hidden: true });
       });
 
+      // Keep your load/error listeners if you want, but they are not “truth” anymore.
       frame.addEventListener("error", () => {
-        // Not guaranteed to fire for cross-origin iframes, but helpful when it does.
-        setStatus("Loading components… (iframe failed)", { hidden: false, error: true });
+        failStreak += 1;
+        forceReload();
+        scheduleRetry(forceReload);
       });
 
-      const applyIfChanged = (next) => {
-        const src = normalize(next);
-        if (!src) return false;
-        if (!isProbablyUrl(src)) return false;
-        if (src === lastSrc) return true;
+      const applyFromEnv = () => {
+        const base = normalize(window.__COMPONENTS_SERVER__);
+        if (!base || !isProbablyUrl(base)) return false;
 
-        lastSrc = src;
+        const url = base + "?_gallery_mode=preview_list";
 
-        // show spinner while iframe navigates
-        startFrameLoading("Loading components…");
+        // If we’ve been failing, force reload even if the URL didn’t change,
+        // because tunnel might be “same URL but now healthy” or vice versa.
+        const force = failStreak > 0;
 
-        frame.src = src;
-        return true;
+        return navigate(url, {
+          force,
+          label: force ? "Reconnecting components…" : "Loading components…",
+        });
       };
 
       const fetchEnv = async () => {
         if (inFlight) return;
         inFlight = true;
 
-        // If we’ve never succeeded, always show loader.
-        // If we HAVE succeeded before, only show loader again after a couple fails (prevents flicker).
-        if (!okOnce) setStatus("Loading components…");
-        else if (failStreak >= 2) setStatus("Reconnecting components…", { error: true });
+        if (!okOnce) setStatus("Loading components…", { hidden: false, error: false });
+        else if (failStreak > 0) setStatus("Reconnecting components…", { hidden: false, error: true });
 
         try {
           const res = await fetch(envUrl + "?t=" + Date.now(), { cache: "no-store" });
           if (!res.ok) {
             failStreak += 1;
-            if (!okOnce) setStatus("Loading components… (env not ready)", { error: false });
+            scheduleRetry(fetchEnv);
             return;
           }
 
           const js = await res.text();
-
-          // Execute env.js in main context so it can set window.__COMPONENTS_SERVER__
           try {
             (0, eval)(js);
           } catch (e) {
             failStreak += 1;
-            if (!okOnce) setStatus("Loading components… (bad env.js)", { error: true });
+            scheduleRetry(fetchEnv);
             return;
           }
 
-          const applied = applyIfChanged(window.__COMPONENTS_SERVER__ + "?_gallery_mode=preview_list");
+          const applied = applyFromEnv();
           if (!applied) {
             failStreak += 1;
-            if (!okOnce) {
-              setStatus("Loading components… (waiting for __COMPONENTS_SERVER__)", { error: false });
-            }
-            return;
+            scheduleRetry(fetchEnv);
           }
-
-          // Success 🎉
-          okOnce = true;
-          failStreak = 0;
-          // don't hide here — iframe 'load' will hide it
         } catch (e) {
           failStreak += 1;
-          if (!okOnce) setStatus("Loading components… (network)", { error: false });
+          scheduleRetry(fetchEnv);
         } finally {
           inFlight = false;
         }
       };
 
       // start visible until success
-      setStatus("Loading components…");
+      setStatus("Loading components…", { hidden: false, error: false });
       fetchEnv();
-      setInterval(fetchEnv, 5000);
+      setInterval(fetchEnv, POLL_MS);
     })();
 </script>
 
