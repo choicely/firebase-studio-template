@@ -183,5 +183,10 @@
   "timeline.pageSize": 0,
   "code-runner.runInTerminal": true,
   "react-native-tools.showUserTips": false,
-  "react-native.packager.status-indicator": "Short"
+  "react-native.packager.status-indicator": "Short",
+  "workbench.preferredDarkColorTheme": "Google Dark",
+  "workbench.preferredLightColorTheme": "Google Light",
+  "workbench.iconTheme": "monospace",
+  "window.autoDetectColorScheme": false,
+  "workbench.colorTheme": "Google Dark"
 }
