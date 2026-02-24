@@ -1,5 +1,6 @@
 console.log('Loading webpack.config.js...')
 
+const fs = require('node:fs')
 const path = require('node:path')
 
 const webpack = require('webpack')
@@ -9,6 +10,26 @@ const babelConfig = require('./babel.config')
 
 const repoRoot = path.resolve(__dirname, '../..')
 const rnRoot = path.resolve(__dirname, '..')
+
+function getComponentNames() {
+  const content = fs.readFileSync(path.resolve(rnRoot, 'src/componentRegistry.js'), 'utf-8')
+  const vars = {}
+  for (const [, name, value] of content.matchAll(/const\s+(\w+)\s*=\s*['"]([^'"]+)['"]/g)) {
+    vars[name] = value
+  }
+  const names = []
+  const mapping = content.match(/componentMapping\s*=\s*\{([\s\S]*?)\}/)
+  if (mapping) {
+    for (const [, computed, quoted, plain] of mapping[1].matchAll(/(?:\[(\w+)\]|['"]([^'"]+)['"]|(\w+))\s*:/g)) {
+      names.push(computed ? (vars[computed] || computed) : (quoted || plain))
+    }
+  }
+  return names
+}
+
+function getComponentsJson() {
+  return JSON.stringify({ components: getComponentNames().map(component_id => ({ component_id })) })
+}
 const webRoot = path.resolve(rnRoot, 'web')
 const nodeModulesRoot = path.resolve(repoRoot, 'node_modules')
 
@@ -30,6 +51,7 @@ const babelLoaderConfiguration = {
   include: [
     webRoot,
     indexJsPath,
+    path.resolve(repoRoot, 'index.js'),
     path.resolve(rnRoot, 'src'),
     ...transpileModules.map((m) => path.resolve(nodeModulesRoot, m)),
   ],
@@ -93,6 +115,16 @@ module.exports = {
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
     }),
+    {
+      apply(compiler) {
+        compiler.hooks.thisCompilation.tap('ComponentsJsonPlugin', (compilation) => {
+          compilation.hooks.processAssets.tap(
+            { name: 'ComponentsJsonPlugin', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL },
+            () => compilation.emitAsset('_components.json', new webpack.sources.RawSource(getComponentsJson())),
+          )
+        })
+      },
+    },
   ],
   devServer: {
     port: webPort,
@@ -100,6 +132,18 @@ module.exports = {
     hot: true,
     compress: true,
     allowedHosts: 'all',
+    setupMiddlewares: (middlewares) => {
+      middlewares.unshift((req, res, next) => {
+        if (req.url === '/_components' || req.url === '/_components.json') {
+          res.setHeader('Content-Type', 'application/json')
+          res.setHeader('Cache-Control', 'no-store')
+          res.end(getComponentsJson())
+        } else {
+          next()
+        }
+      })
+      return middlewares
+    },
     ...(isWorkspace
       ? {
         client: {
