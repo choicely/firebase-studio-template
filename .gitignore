@@ -33,6 +33,7 @@ dist/
 out/
 bin/
 gen/
+qr.png
 
 ############################
 # Android / Gradle
