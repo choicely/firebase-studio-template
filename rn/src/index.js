@@ -4,15 +4,23 @@ import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context'
 import {GestureHandlerRootView} from 'react-native-gesture-handler'
 import Toast from 'react-native-toast-message'
 
-if (__DEV__) {
-  LogBox.ignoreLogs(['Open debugger to view warnings'])
+let componentMapping = {}
+let defaultComponentName = null
+
+try {
+  const registry = require('./componentRegistry')
+  componentMapping = registry.componentMapping || {}
+  defaultComponentName = registry.defaultComponentName ?? null
+} catch (error) {
+  if (__DEV__) {
+    console.warn('Component registry not found in src/components:', error)
+  }
 }
 
-const defaultComponentName = 'hello'
-export const componentMapping = {
-  [defaultComponentName]: () => require('./components/Hello'),
-  counter: () => require('./components/Counter'),
-  tic_tac_toe: () => require('./components/TicTacToe'),
+export {componentMapping, defaultComponentName}
+
+if (__DEV__) {
+  LogBox.ignoreLogs(['Open debugger to view warnings'])
 }
 
 function ErrorScreen({name, error, stage}) {
