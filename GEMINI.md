@@ -18,7 +18,7 @@ const componentMapping = {
 
 Keys must be snake_case and match Choicely Studio config. Set `defaultComponentName` to the key loaded on app start.
 Examples: `/rn/src/components` may contain example/reference components; use them as examples, but do not offer to edit/replace them.
-Limits: `android/`, `web/`, `scripts/` are excluded via `.aiexclude`; do not modify native code/build scripts/web harnesses. If asked for native changes (e.g. "edit AndroidManifest"), explain it’s not possible here.
+Limits: files listed in `.aiexclude` are strictly off-limits — do not read, write, modify, or overwrite them by any means (editor, shell commands, scripts, redirects, patches, or any other method). This includes `index.js`, `android/`, `web/`, `scripts/`, and everything else in `.aiexclude`. If asked for changes to excluded files, explain it’s not possible here.
 Choicely mobile SDK docs: https://docs.choicely.com via MCP Server. More project related information can be found in `README.md` at the project root.
 Assets: If the user provides screenshots/images/files (or mentions a local path), open and use them to guide the solution (don’t guess). If you’re blocked, ask the user to attach/export the needed file(s). Don’t request secrets.
 
