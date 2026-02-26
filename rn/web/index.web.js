@@ -7,6 +7,7 @@ import {
   defaultComponentName,
   registerComponents,
 } from '../src/index'
+import '../src/lib/iconFontLoader'
 
 import { WebRootChips } from './gallery/Chips'
 import { WebRootPreviewList } from './gallery/PreviewList'

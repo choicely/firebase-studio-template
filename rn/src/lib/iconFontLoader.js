@@ -138,6 +138,18 @@ const ICON_FAMILY_DEFINITIONS = {
 
 const FONT_DEFINITIONS = Object.values(ICON_FAMILY_DEFINITIONS)
 
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const style = document.createElement('style')
+  style.textContent = FONT_DEFINITIONS.flatMap(({fontFiles, assetModules}) =>
+    fontFiles.map((file, i) => {
+      const familyName = file.replace(/\.ttf$/i, '')
+      return `@font-face { font-family: "${familyName}"; src: url("${assetModules[i]}") format("truetype"); }`
+    }),
+  ).join('\n')
+  document.head.appendChild(style)
+  for (const def of FONT_DEFINITIONS) loadedFonts.add(def.name)
+}
+
 function warnDev(message, error) {
   if (!__DEV__) {
     return
