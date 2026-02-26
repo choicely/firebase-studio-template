@@ -11,24 +11,143 @@ const babelConfig = require('./babel.config')
 const repoRoot = path.resolve(__dirname, '../..')
 const rnRoot = path.resolve(__dirname, '..')
 
-function getComponentNames() {
-  const content = fs.readFileSync(path.resolve(rnRoot, 'src/componentRegistry.js'), 'utf-8')
-  const vars = {}
-  for (const [, name, value] of content.matchAll(/const\s+(\w+)\s*=\s*['"]([^'"]+)['"]/g)) {
-    vars[name] = value
-  }
-  const names = []
-  const mapping = content.match(/componentMapping\s*=\s*\{([\s\S]*?)\}/)
-  if (mapping) {
-    for (const [, computed, quoted, plain] of mapping[1].matchAll(/(?:\[(\w+)\]|['"]([^'"]+)['"]|(\w+))\s*:/g)) {
-      names.push(computed ? (vars[computed] || computed) : (quoted || plain))
+function getComponentEntries(errors) {
+  try {
+    const content = fs.readFileSync(path.resolve(rnRoot, 'src/componentRegistry.js'), 'utf-8')
+    const vars = {}
+    for (const [, name, value] of content.matchAll(/const\s+(\w+)\s*=\s*['"]([^'"]+)['"]/g)) {
+      vars[name] = value
     }
+    const entries = []
+    const mapping = content.match(/componentMapping\s*=\s*\{([\s\S]*?)\}/)
+    if (mapping) {
+      for (const [, computed, quoted, plain, requirePath] of mapping[1].matchAll(
+        /(?:\[(\w+)\]|['"]([^'"]+)['"]|(\w+))\s*:\s*\(\)\s*=>\s*require\(['"]([^'"]+)['"]\)/g
+      )) {
+        const name = computed ? (vars[computed] || computed) : (quoted || plain)
+        entries.push({ name, requirePath })
+      }
+    }
+    return entries
+  } catch (err) {
+    errors.push({ phase: 'registry', file: 'src/componentRegistry.js', message: err.message })
+    return []
   }
-  return names
+}
+
+function parseDefaultValue(raw) {
+  const trimmed = raw.trim()
+  const strMatch = trimmed.match(/^(['"])(.*)\1$/)
+  if (strMatch) return strMatch[2]
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed)
+  if (trimmed === 'true') return true
+  if (trimmed === 'false') return false
+  if (trimmed === 'null') return null
+  return undefined
+}
+
+function parseOptionParam(segment) {
+  try {
+    const match = segment.trim().match(/^(\w+)(?:\s*=\s*([\s\S]+))?$/)
+    if (!match) return null
+    const option = { option_id: match[1] }
+    if (match[2] !== undefined) {
+      const defaultVal = parseDefaultValue(match[2])
+      if (defaultVal !== undefined) option.default_value = defaultVal
+    }
+    return option
+  } catch (err) {
+    return { _error: err.message, _segment: segment.trim() }
+  }
+}
+
+function getComponentOptions(componentId, requirePath, errors) {
+  let filePath
+  try {
+    const basePath = path.resolve(rnRoot, 'src', requirePath)
+    let content = null
+    for (const ext of ['.jsx', '.js', '.tsx', '.ts']) {
+      filePath = basePath + ext
+      try { content = fs.readFileSync(filePath, 'utf-8'); break } catch {}
+    }
+    if (!content) {
+      errors.push({ phase: 'read', component_id: componentId, requirePath, message: 'No source file found' })
+      return []
+    }
+
+    const exportMatch = content.match(/export\s+default\s+function\s+\w+\s*\(/)
+    if (!exportMatch) return []
+
+    // Find matching closing ')' tracking nesting depth
+    const start = exportMatch.index + exportMatch[0].length
+    let depth = 1
+    let i = start
+    while (i < content.length && depth > 0) {
+      if (content[i] === '(') depth++
+      else if (content[i] === ')') depth--
+      i++
+    }
+    const paramBlock = content.substring(start, i - 1).trim()
+    if (!paramBlock.startsWith('{') || !paramBlock.endsWith('}')) return []
+
+    const inner = paramBlock.slice(1, -1).trim()
+    if (!inner) return []
+
+    // Split by commas respecting nested brackets
+    const segments = []
+    let nestDepth = 0
+    let current = ''
+    for (const ch of inner) {
+      if (ch === '{' || ch === '[' || ch === '(') nestDepth++
+      else if (ch === '}' || ch === ']' || ch === ')') nestDepth--
+      else if (ch === ',' && nestDepth === 0) {
+        segments.push(current)
+        current = ''
+        continue
+      }
+      current += ch
+    }
+    segments.push(current)
+
+    const options = []
+    for (const seg of segments) {
+      try {
+        const option = parseOptionParam(seg)
+        if (option) {
+          if (option._error) {
+            errors.push({ phase: 'option_parse', component_id: componentId, segment: option._segment, message: option._error })
+          } else {
+            options.push(option)
+          }
+        }
+      } catch (err) {
+        errors.push({ phase: 'option_parse', component_id: componentId, segment: seg.trim(), message: err.message })
+      }
+    }
+    return options
+  } catch (err) {
+    errors.push({ phase: 'options', component_id: componentId, requirePath, message: err.message })
+    return []
+  }
 }
 
 function getComponentsJson() {
-  return JSON.stringify({ components: getComponentNames().map(component_id => ({ component_id })) })
+  const errors = []
+  const entries = getComponentEntries(errors)
+  const components = []
+  for (const { name, requirePath } of entries) {
+    try {
+      components.push({
+        component_id: name,
+        options: getComponentOptions(name, requirePath, errors),
+      })
+    } catch (err) {
+      errors.push({ phase: 'component', component_id: name, message: err.message })
+    }
+  }
+  const result = { components }
+  if (errors.length) result.errors = errors
+  return JSON.stringify(result)
 }
 const webRoot = path.resolve(rnRoot, 'web')
 const nodeModulesRoot = path.resolve(repoRoot, 'node_modules')
