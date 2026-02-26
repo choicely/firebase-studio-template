@@ -76,11 +76,27 @@ module.exports = mergeConfig(defaultConfig, {
         }
       }
 
-      if (typeof context.resolveRequest === 'function') {
-        return context.resolveRequest(context, moduleName, platform)
-      }
+      try {
+        if (typeof context.resolveRequest === 'function') {
+          return context.resolveRequest(context, moduleName, platform)
+        }
 
-      return null
+        return null
+      } catch (error) {
+        if (
+          moduleName.startsWith('./components/') &&
+          !moduleName.startsWith('./components/_')
+        ) {
+          console.warn(
+            `[metro] Component not found: ${moduleName} – using placeholder`,
+          )
+          return {
+            type: 'sourceFile',
+            filePath: path.resolve(rnRoot, '_emptyModule.js'),
+          }
+        }
+        throw error
+      }
     },
   },
   cacheStores: [

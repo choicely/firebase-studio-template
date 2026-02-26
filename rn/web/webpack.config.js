@@ -182,7 +182,7 @@ const babelLoaderConfiguration = {
     loader: 'babel-loader',
     options: {
       cacheDirectory: path.resolve(repoRoot, '.cache/babel-loader'),
-      presets: ['module:@react-native/babel-preset'],
+      presets: [['module:@react-native/babel-preset', { disableImportExportTransform: true }]],
       plugins: ['react-native-web', ...(babelConfig.plugins || [])],
     },
   },
@@ -198,6 +198,7 @@ const ttfLoaderConfiguration = {
   type: 'asset/resource',
 }
 
+const isDevServer = !!process.env.WEBPACK_SERVE
 const isWorkspace = Boolean(process.env.WORKSPACE_SLUG)
 
 module.exports = {
@@ -238,6 +239,20 @@ module.exports = {
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
     }),
+    new webpack.NormalModuleReplacementPlugin(
+      /\.\/components\/[A-Z]/,
+      (resource) => {
+        const basePath = path.resolve(resource.context, resource.request)
+        const extensions = ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js']
+        const exists = extensions.some(ext => {
+          try { fs.accessSync(basePath + ext); return true } catch { return false }
+        })
+        if (!exists) {
+          console.warn(`[webpack] Component not found: ${resource.request} – using placeholder`)
+          resource.request = path.resolve(rnRoot, '_emptyModule.js')
+        }
+      },
+    ),
     {
       apply(compiler) {
         compiler.hooks.thisCompilation.tap('ComponentsJsonPlugin', (compilation) => {
@@ -267,18 +282,20 @@ module.exports = {
       })
       return middlewares
     },
-    ...(isWorkspace
-      ? {
-        client: {
+    client: {
+      overlay: { warnings: false },
+      ...(isWorkspace
+        ? {
           webSocketURL: {
             port: 443,
             pathname: '/ws',
           },
-        },
-        webSocketServer: 'ws',
-      }
-      : {}),
+        }
+        : {}),
+    },
+    ...(isWorkspace ? { webSocketServer: 'ws' } : {}),
   },
+  ...(isDevServer ? { optimization: { innerGraph: false } } : {}),
   cache: {
     type: 'filesystem',
     cacheDirectory: path.resolve(repoRoot, '.cache/webpack'),
