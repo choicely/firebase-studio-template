@@ -1,8 +1,10 @@
 # Exclude Web Harness - Prevents confusion with React Native Web specific configs
 /rn/web/
 
-# Exclude RN Entry Point (managed automatically, do not edit)
+# Exclude RN Entry Point and internal libs (managed automatically, do not edit)
 /rn/src/index.js
+/rn/src/lib/
+/rn/_*
 
 # Exclude Dev Scripts and Proxies
 /rn/dev/
