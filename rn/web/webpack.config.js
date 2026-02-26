@@ -72,11 +72,11 @@ function getComponentOptions(componentId, requirePath, errors) {
     }
     if (!content) {
       errors.push({ phase: 'read', component_id: componentId, requirePath, message: 'No source file found' })
-      return []
+      return { name: null, options: [] }
     }
 
-    const exportMatch = content.match(/export\s+default\s+function\s+\w+\s*\(/)
-    if (!exportMatch) return []
+    const exportMatch = content.match(/export\s+default\s+function\s+(\w+)\s*\(/)
+    if (!exportMatch) return { name: null, options: [] }
 
     // Find matching closing ')' tracking nesting depth
     const start = exportMatch.index + exportMatch[0].length
@@ -88,10 +88,12 @@ function getComponentOptions(componentId, requirePath, errors) {
       i++
     }
     const paramBlock = content.substring(start, i - 1).trim()
-    if (!paramBlock.startsWith('{') || !paramBlock.endsWith('}')) return []
+    const funcName = exportMatch[1]
+
+    if (!paramBlock.startsWith('{') || !paramBlock.endsWith('}')) return { name: funcName, options: [] }
 
     const inner = paramBlock.slice(1, -1).trim()
-    if (!inner) return []
+    if (!inner) return { name: funcName, options: [] }
 
     // Split by commas respecting nested brackets
     const segments = []
@@ -124,10 +126,10 @@ function getComponentOptions(componentId, requirePath, errors) {
         errors.push({ phase: 'option_parse', component_id: componentId, segment: seg.trim(), message: err.message })
       }
     }
-    return options
+    return { name: funcName, options }
   } catch (err) {
     errors.push({ phase: 'options', component_id: componentId, requirePath, message: err.message })
-    return []
+    return { name: null, options: [] }
   }
 }
 
@@ -137,9 +139,11 @@ function getComponentsJson() {
   const components = []
   for (const { name, requirePath } of entries) {
     try {
+      const { name: funcName, options } = getComponentOptions(name, requirePath, errors)
       components.push({
         component_id: name,
-        options: getComponentOptions(name, requirePath, errors),
+        ...(funcName && { component_name: funcName }),
+        options,
       })
     } catch (err) {
       errors.push({ phase: 'component', component_id: name, message: err.message })
