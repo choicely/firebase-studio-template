@@ -68,7 +68,10 @@
     "GEMINI.md": true,
     "**/*.config.js": true,
     "**/dev": true,
-    "**/web": true
+    "**/web": true,
+    "**/src/lib": true,
+    "**/src/index.js": true,
+    "**/rn/_*": true
   },
   "files.watcherExclude": {
     "**/.DS_Store": true,
